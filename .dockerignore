@@ -1,8 +1,0 @@
-node_modules
-.quasar
-.vscode
-dist
-.git
-.gitignore
-Dockerfile
-docker-compose.yml
