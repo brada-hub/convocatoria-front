@@ -21,3 +21,96 @@ body {
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* =============================================
+   UNITEPC Global Component Styles
+   ============================================= */
+
+/* Primary button with gradient */
+.btn-primary {
+  background: linear-gradient(135deg, #663399 0%, #5a2d82 100%) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  box-shadow: 0 4px 14px rgba(102, 51, 153, 0.3) !important;
+  transition: all 0.3s ease !important;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 51, 153, 0.4) !important;
+  }
+}
+
+/* Secondary button */
+.btn-secondary {
+  background: linear-gradient(135deg, #009999 0%, #008080 100%) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  box-shadow: 0 4px 14px rgba(0, 153, 153, 0.3) !important;
+  transition: all 0.3s ease !important;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 153, 153, 0.4) !important;
+  }
+}
+
+/* Input fields styling */
+.q-field--filled .q-field__control {
+  border-radius: 8px !important;
+  background: #f8fafc !important;
+  
+  &:before {
+    border-color: #e2e8f0 !important;
+  }
+  
+  &:hover:before {
+    border-color: #663399 !important;
+  }
+}
+
+.q-field--focused .q-field__control {
+  &:after {
+    border-color: #663399 !important;
+  }
+}
+
+/* Card styling */
+.card-premium {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+  }
+}
+
+/* Gradient backgrounds */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #663399 0%, #8b5cf6 100%);
+}
+
+.bg-gradient-secondary {
+  background: linear-gradient(135deg, #009999 0%, #00aaaa 100%);
+}
+
+/* CSS Variables for consistency */
+:root {
+  --gradient-primary: linear-gradient(135deg, #663399 0%, #8b5cf6 100%);
+  --gradient-secondary: linear-gradient(135deg, #009999 0%, #00aaaa 100%);
+  --shadow-glow: 0 8px 30px rgba(102, 51, 153, 0.25);
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --bg-dark: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --border-color: #e2e8f0;
+  --transition-normal: 0.3s ease;
+}

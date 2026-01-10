@@ -1,12 +1,22 @@
 <template>
   <div class="animate-fadeIn">
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-      <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
-        <h3 class="text-lg font-semibold text-gray-800">Sedes y Ubicaciones</h3>
-        <button @click="openDialog()" class="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm">
-          <q-icon name="add" /> Nueva Sede
-        </button>
-      </div>
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <!-- Header Purple Style - Reference Image 1 -->
+        <div class="bg-primary px-6 py-5 flex flex-col md:flex-row justify-between items-center gap-4">
+           <div class="flex items-center gap-4">
+              <div class="p-2.5 bg-white/10 rounded-xl text-white backdrop-blur-sm">
+                 <q-icon name="apartment" size="28px" />
+              </div>
+              <div class="text-white">
+                 <h3 class="text-xl font-bold leading-tight">Gestión de Sedes</h3>
+                 <div class="text-sm opacity-90 font-medium">Administra las sedes de la organización</div>
+              </div>
+           </div>
+
+           <button @click="openDialog()" class="bg-secondary hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+             <q-icon name="add" size="18px" /> Nueva Sede
+           </button>
+        </div>
       <q-table :rows="sedes" :columns="columns" row-key="id" flat class="qt-clean" :loading="loading">
         <template v-slot:body-cell-activo="props">
           <q-td :props="props">

@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./index.html",
-    "./src/**/*.{vue,js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
@@ -15,8 +12,8 @@ module.exports = {
         positive: '#21BA45',
         negative: '#C10015',
         info: '#31CCEC',
-        warning: '#F2C037'
-      }
+        warning: '#F2C037',
+      },
     },
   },
   plugins: [],

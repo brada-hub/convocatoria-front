@@ -20,20 +20,45 @@ const routes = [
         name: 'consultar',
         component: () => import('pages/ConsultarPage.vue'),
         meta: { title: 'Consultar Estado' }
+      },
+      // Login is public but part of the app flow
+      {
+        path: 'login',
+        name: 'login',
+        component: () => import('pages/LoginPage.vue'),
+        meta: { title: 'Iniciar Sesión' }
       }
     ]
   },
+
+  // Routes for authenticated users (Admin)
   {
     path: '/admin',
     component: () => import('layouts/MainLayout.vue'),
+    meta: { requiresAuth: true },
     children: [
       {
         path: '',
         name: 'admin',
         component: () => import('pages/AdminPage.vue'),
-        meta: { title: 'Panel Administrativo', requiresAuth: true }
+        meta: { title: 'Panel Administrativo' }
       }
     ]
+  },
+
+  // Change Password Route (requires auth but is special)
+  {
+      path: '/change-password',
+      component: () => import('layouts/PublicLayout.vue'), // Using PublicLayout as it's cleaner (no sidebar)
+      meta: { requiresAuth: true },
+      children: [
+          {
+              path: '',
+              name: 'change-password',
+              component: () => import('pages/ChangePasswordPage.vue'),
+              meta: { title: 'Cambiar Contraseña' }
+          }
+      ]
   },
 
   // Always leave this as last one

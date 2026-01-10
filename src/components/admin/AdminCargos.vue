@@ -1,11 +1,21 @@
 <template>
   <div class="animate-fadeIn">
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-      <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
-        <h3 class="text-lg font-semibold text-gray-800">Cargos Disponibles</h3>
-        <button @click="openDialog()" class="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm">
-          <q-icon name="add" /> Nuevo Cargo
-        </button>
+      <!-- Header Purple -->
+      <div class="bg-primary px-5 py-3 flex flex-col sm:flex-row justify-between items-center gap-4">
+         <div class="flex items-center gap-4">
+            <div class="p-2 bg-white/10 rounded-lg text-white backdrop-blur-sm">
+               <q-icon name="badge" size="24px" />
+            </div>
+            <div>
+               <h3 class="text-lg font-bold text-white">Catálogo de Cargos</h3>
+               <div class="text-xs text-blue-100 opacity-80">Gestione los puestos disponibles</div>
+            </div>
+         </div>
+
+         <button @click="openDialog()" class="bg-secondary hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg hover:shadow-teal-500/30 flex items-center gap-2 transform active:scale-95">
+           <q-icon name="add" /> Nuevo Cargo
+         </button>
       </div>
       <q-table :rows="cargos" :columns="columns" row-key="id" flat class="qt-clean" :loading="loading">
         <template v-slot:body-cell-activo="props">

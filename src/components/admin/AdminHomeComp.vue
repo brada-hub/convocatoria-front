@@ -1,48 +1,48 @@
 <template>
   <div class="animate-fadeIn">
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+    <!-- Stats Cards Modernos -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
       <!-- Card 1: Convocatorias Activas -->
-      <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+      <div class="bg-gradient-to-br from-white to-blue-50/50 p-5 rounded-2xl shadow-sm border border-blue-100 flex items-center justify-between group hover:shadow-md transition-all duration-300">
         <div>
-          <div class="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{{ stats.convocatorias_activas }}</div>
-          <div class="text-xs md:text-sm text-gray-500 font-medium">Convocatorias</div>
+          <div class="text-3xl font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">{{ stats.convocatorias_activas }}</div>
+          <div class="text-xs text-blue-900/60 font-bold uppercase tracking-wider">Convocatorias</div>
         </div>
-        <div class="p-2 md:p-3 bg-blue-50 text-blue-600 rounded-xl">
-          <q-icon name="campaign" size="20px" class="md:!text-2xl" />
+        <div class="p-3 bg-blue-100 text-blue-600 rounded-xl group-hover:scale-110 transition-transform shadow-sm shadow-blue-100">
+          <q-icon name="campaign" size="24px" />
         </div>
       </div>
 
       <!-- Card 2: Postulaciones Totales -->
-      <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+      <div class="bg-gradient-to-br from-white to-purple-50/50 p-5 rounded-2xl shadow-sm border border-purple-100 flex items-center justify-between group hover:shadow-md transition-all duration-300">
         <div>
-          <div class="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{{ stats.total_postulaciones }}</div>
-          <div class="text-xs md:text-sm text-gray-500 font-medium">Postulaciones Totales</div>
+          <div class="text-3xl font-bold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">{{ stats.total_postulaciones }}</div>
+          <div class="text-xs text-purple-900/60 font-bold uppercase tracking-wider">Postulaciones</div>
         </div>
-        <div class="p-2 md:p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-          <q-icon name="people" size="20px" class="md:!text-2xl" />
+        <div class="p-3 bg-purple-100 text-purple-600 rounded-xl group-hover:scale-110 transition-transform shadow-sm shadow-purple-100">
+          <q-icon name="people" size="24px" />
         </div>
       </div>
 
       <!-- Card 3: Pendientes -->
-      <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+      <div class="bg-gradient-to-br from-white to-orange-50/50 p-5 rounded-2xl shadow-sm border border-orange-100 flex items-center justify-between group hover:shadow-md transition-all duration-300">
         <div>
-          <div class="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{{ stats.pendientes }}</div>
-          <div class="text-xs md:text-sm text-gray-500 font-medium">Pendientes de Revisión</div>
+          <div class="text-3xl font-bold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors">{{ stats.pendientes }}</div>
+          <div class="text-xs text-orange-900/60 font-bold uppercase tracking-wider">Pendientes</div>
         </div>
-        <div class="p-2 md:p-3 bg-orange-50 text-orange-600 rounded-xl">
-          <q-icon name="assignment_late" size="20px" class="md:!text-2xl" />
+        <div class="p-3 bg-orange-100 text-orange-600 rounded-xl group-hover:scale-110 transition-transform shadow-sm shadow-orange-100">
+          <q-icon name="assignment_late" size="24px" />
         </div>
       </div>
 
       <!-- Card 4: Postulantes -->
-      <div class="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-shadow">
+      <div class="bg-gradient-to-br from-white to-green-50/50 p-5 rounded-2xl shadow-sm border border-green-100 flex items-center justify-between group hover:shadow-md transition-all duration-300">
         <div>
-          <div class="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{{ stats.postulantes }}</div>
-          <div class="text-xs md:text-sm text-gray-500 font-medium">Postulantes Registrados</div>
+          <div class="text-3xl font-bold text-gray-900 mb-1 group-hover:text-green-600 transition-colors">{{ stats.postulantes }}</div>
+          <div class="text-xs text-green-900/60 font-bold uppercase tracking-wider">Registrados</div>
         </div>
-         <div class="p-2 md:p-3 bg-green-50 text-green-600 rounded-xl">
-          <q-icon name="person_search" size="20px" class="md:!text-2xl" />
+         <div class="p-3 bg-green-100 text-green-600 rounded-xl group-hover:scale-110 transition-transform shadow-sm shadow-green-100">
+          <q-icon name="person_search" size="24px" />
         </div>
       </div>
     </div>

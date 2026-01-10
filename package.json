@@ -1,8 +1,8 @@
 {
   "name": "convocatoria-front",
   "version": "0.0.1",
-  "description": "A Quasar Project",
-  "productName": "Quasar App",
+  "description": "Sistema de Convocatorias UNITEPC",
+  "productName": "Convocatorias Unitepc",
   "author": "Brayan Padilla <padillasilesbrayandavid@gmail.com>",
   "type": "module",
   "private": true,
