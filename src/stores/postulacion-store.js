@@ -25,6 +25,10 @@ export const usePostulacionStore = defineStore('postulacion', {
     convocatoriaActual: null,
     ofertasSeleccionadas: [],
 
+    // Documentos requeridos por la convocatoria (dinámico)
+    documentosRequeridos: [], // Array de { id, nombre, descripcion, icono, obligatorio }
+    documentos: {}, // Objeto dinámico { [tipo_documento_id]: File }
+
     // Expediente
     formaciones: [],
     experiencias: [],
@@ -50,6 +54,19 @@ export const usePostulacionStore = defineStore('postulacion', {
       if (!state.convocatoriaActual?.ofertas_por_sede) return []
       return state.convocatoriaActual.ofertas_por_sede
     },
+
+    // Verificar si todos los documentos obligatorios están cargados
+    documentosObligatoriosCompletos: (state) => {
+      const obligatorios = state.documentosRequeridos.filter(d => d.obligatorio)
+      return obligatorios.every(doc => state.documentos[doc.id] instanceof File)
+    },
+
+    // Obtener documentos faltantes
+    documentosFaltantes: (state) => {
+      return state.documentosRequeridos
+        .filter(d => d.obligatorio && !(state.documentos[d.id] instanceof File))
+        .map(d => d.nombre)
+    }
   },
 
   actions: {
@@ -67,6 +84,8 @@ export const usePostulacionStore = defineStore('postulacion', {
       this.esPostulanteExistente = false
       this.tieneExpediente = false
       this.ofertasSeleccionadas = []
+      this.documentosRequeridos = []
+      this.documentos = {}
       this.formaciones = []
       this.experiencias = []
       this.capacitaciones = []
@@ -95,6 +114,17 @@ export const usePostulacionStore = defineStore('postulacion', {
       try {
         const { data } = await api.get(`/convocatorias/${slug}`)
         this.convocatoriaActual = data
+
+        // Cargar documentos requeridos de la convocatoria
+        if (data.documentos_requeridos) {
+          this.documentosRequeridos = data.documentos_requeridos
+          // Inicializar objeto de documentos vacío
+          this.documentos = {}
+          data.documentos_requeridos.forEach(doc => {
+            this.documentos[doc.id] = null
+          })
+        }
+
         return data
       } catch (error) {
         this.error = 'Convocatoria no encontrada'
@@ -167,6 +197,11 @@ export const usePostulacionStore = defineStore('postulacion', {
       this[seccion].splice(index, 1)
     },
 
+    // Establecer documento por tipo
+    setDocumento(tipoDocumentoId, archivo) {
+      this.documentos[tipoDocumentoId] = archivo
+    },
+
     // Enviar postulación completa
     async enviarPostulacion() {
       this.loading = true
@@ -192,6 +227,16 @@ export const usePostulacionStore = defineStore('postulacion', {
         this.ofertasSeleccionadas.forEach((id, i) => {
           formData.append(`ofertas[${i}]`, id)
         })
+
+        // Documentos requeridos (dinámicos)
+        let docIndex = 0
+        for (const [tipoId, archivo] of Object.entries(this.documentos)) {
+          if (archivo instanceof File) {
+            formData.append(`documentos[${docIndex}][tipo_documento_id]`, tipoId)
+            formData.append(`documentos[${docIndex}][archivo]`, archivo)
+            docIndex++
+          }
+        }
 
         // Formaciones
         this.formaciones.forEach((item, i) => {
@@ -277,3 +322,4 @@ export const usePostulacionStore = defineStore('postulacion', {
     },
   },
 })
+

@@ -196,6 +196,16 @@
             </div>
          </div>
 
+         <!-- VISTA: TIPOS DE DOCUMENTO -->
+         <div v-show="activeTab === 'documentos'" class="animate-fadeIn">
+            <TiposDocumentoManager />
+         </div>
+
+         <!-- VISTA: REPORTES -->
+         <div v-show="activeTab === 'reportes'" class="animate-fadeIn">
+            <ReportsDashboard />
+         </div>
+
       </div>
 
       <!-- Dialogs Modals (Manteniendo estructura Quasar para funcionalidad, pero con clases si aplica) -->
@@ -392,6 +402,76 @@
 
                         <div class="flex justify-between mt-8 pt-6 border-t border-gray-100">
                            <button @click="step = 1"
+                              class="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium hover:bg-gray-100 rounded-lg transition-colors">
+                              Atrás
+                           </button>
+                           <button @click="step = 3"
+                              class="px-8 py-3 bg-gray-900 text-white rounded-lg font-bold hover:bg-gray-800 transition-colors flex items-center gap-2 group">
+                              Siguiente: Documentos <q-icon name="arrow_forward"
+                                 class="group-hover:translate-x-1 transition-transform" />
+                           </button>
+                        </div>
+                     </div>
+                  </q-step>
+
+                  <!-- PASO 3: DOCUMENTOS REQUERIDOS (Solo nueva) -->
+                  <q-step :name="3" title="Documentos" icon="description" :disable="editingConvocatoria !== null"
+                     class="h-full">
+                     <div class="max-w-4xl mx-auto py-4">
+                        <div class="bg-blue-50 p-4 rounded-xl mb-8 border border-blue-100 flex items-start gap-3">
+                           <q-icon name="info" class="text-blue-600 mt-0.5" size="20px" />
+                           <div class="text-sm text-blue-800">
+                              Seleccione los documentos que serán requeridos para postular a esta convocatoria.
+                              Marque como <strong>obligatorio</strong> los que son indispensables.
+                           </div>
+                        </div>
+
+                        <!-- Lista de Tipos de Documento -->
+                        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                           <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                              <h4 class="font-bold text-gray-700">Tipos de Documento Disponibles</h4>
+                           </div>
+
+                           <div class="divide-y divide-gray-100">
+                              <div v-for="tipo in tiposDocumento" :key="tipo.id"
+                                 class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+                                 <div class="flex items-center gap-4">
+                                    <q-checkbox :model-value="isDocumentoSelected(tipo.id)"
+                                       @update:model-value="toggleDocumento(tipo.id)" color="primary" />
+                                    <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                       <q-icon :name="tipo.icono || 'description'" size="20px" />
+                                    </div>
+                                    <div>
+                                       <div class="font-medium text-gray-900">{{ tipo.nombre }}</div>
+                                       <div class="text-xs text-gray-500">{{ tipo.descripcion }}</div>
+                                    </div>
+                                 </div>
+
+                                 <div v-if="isDocumentoSelected(tipo.id)" class="flex items-center gap-2">
+                                    <span class="text-xs text-gray-500 mr-2">¿Obligatorio?</span>
+                                    <q-toggle :model-value="isObligatorio(tipo.id)"
+                                       @update:model-value="toggleObligatorio(tipo.id)" color="orange"
+                                       checked-icon="check" unchecked-icon="close" />
+                                 </div>
+                              </div>
+                           </div>
+
+                           <div v-if="tiposDocumento.length === 0" class="p-8 text-center text-gray-400 italic">
+                              No hay tipos de documento configurados
+                           </div>
+                        </div>
+
+                        <!-- Resumen de selección -->
+                        <div v-if="convocatoriaForm.documentos.length > 0"
+                           class="mt-6 bg-green-50 p-4 rounded-xl border border-green-200">
+                           <div class="text-sm text-green-800">
+                              <strong>{{ convocatoriaForm.documentos.length }}</strong> documentos seleccionados
+                              ({{convocatoriaForm.documentos.filter(d => d.obligatorio).length}} obligatorios)
+                           </div>
+                        </div>
+
+                        <div class="flex justify-between mt-8 pt-6 border-t border-gray-100">
+                           <button @click="step = 2"
                               class="px-6 py-2 text-gray-600 hover:text-gray-900 font-medium hover:bg-gray-100 rounded-lg transition-colors">
                               Atrás
                            </button>
@@ -659,6 +739,8 @@ import AdminSedes from './admin/AdminSedes.vue'
 import AdminCargos from './admin/AdminCargos.vue'
 import AdminUsuarios from './admin/AdminUsuarios.vue'
 import AdminRoles from './admin/AdminRoles.vue'
+import TiposDocumentoManager from './admin/TiposDocumentoManager.vue'
+import ReportsDashboard from './admin/ReportsDashboard.vue'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -679,7 +761,9 @@ const currentSectionTitle = computed(() => {
       cargos: 'Catálogo de Cargos',
       postulaciones: 'Gestión de Postulaciones',
       usuarios: 'Gestión de Usuarios',
-      roles: 'Gestión de Roles'
+      roles: 'Gestión de Roles',
+      documentos: 'Tipos de Documento',
+      reportes: 'Reportes y Estadísticas'
    }
    return map[activeTab.value] || 'Administración'
 })
@@ -694,6 +778,7 @@ const convocatorias = ref([])
 const sedes = ref([])
 const cargos = ref([])
 const postulaciones = ref([])
+const tiposDocumento = ref([])
 
 // Columnas para tablas de expediente
 const columnasFormacion = [
@@ -722,7 +807,7 @@ const qrCodeUrl = ref('')
 const publicLink = ref('')
 
 // Forms
-const convocatoriaForm = ref({ titulo: '', descripcion: '', fecha_inicio: '', fecha_cierre: '', estado: 'borrador', ofertas: [] })
+const convocatoriaForm = ref({ titulo: '', descripcion: '', fecha_inicio: '', fecha_cierre: '', estado: 'borrador', ofertas: [], documentos: [] })
 const nuevaOferta = ref({ sede_id: null, cargos_ids: [], vacantes: 1 }) // vacantes es para el batch add
 const tempOferta = ref({ sede_id: null, cargos_ids: [], vacantes_map: {} }) // vacantes_map para el stepper
 
@@ -837,16 +922,18 @@ const getCargoName = (id) => {
 
 const loadData = async () => {
    try {
-      const [statsRes, convRes, sedesRes, cargosRes] = await Promise.all([
+      const [statsRes, convRes, sedesRes, cargosRes, tiposRes] = await Promise.all([
          api.get('/admin/dashboard/stats'),
          api.get('/admin/convocatorias'),
          api.get('/admin/sedes'),
          api.get('/admin/cargos'),
+         api.get('/admin/tipos-documento'),
       ])
       stats.value = statsRes.data
       convocatorias.value = convRes.data
       sedes.value = sedesRes.data
       cargos.value = cargosRes.data
+      tiposDocumento.value = tiposRes.data
 
       // Auto-seleccionar primera convocatoria para el filtro de postulaciones si no hay una
       if (!filtroConvocatoria.value && convocatorias.value.length > 0) {
@@ -866,7 +953,8 @@ const editConvocatoria = (item) => {
       ...item,
       fecha_inicio: item.fecha_inicio ? item.fecha_inicio.split('T')[0] : '',
       fecha_cierre: item.fecha_cierre ? item.fecha_cierre.split('T')[0] : '',
-      ofertas: []
+      ofertas: [],
+      documentos: item.documentos_requeridos?.map(d => ({ tipo_documento_id: d.id, obligatorio: d.pivot?.obligatorio ?? true })) || []
    };
    step.value = 1;
    showConvocatoriaDialog.value = true
@@ -913,7 +1001,7 @@ const saveConvocatoria = async () => {
    saving.value = true
    try {
       if (editingConvocatoria.value) {
-         // En edición, ignoramos el array ofertas por seguridad, solo editamos datos base
+         // En edición, incluimos documentos pero no ofertas
          const data = { ...convocatoriaForm.value }
          delete data.ofertas
          await api.put(`/admin/convocatorias/${editingConvocatoria.value.id}`, data)
@@ -921,10 +1009,43 @@ const saveConvocatoria = async () => {
          await api.post('/admin/convocatorias', convocatoriaForm.value)
       }
       showConvocatoriaDialog.value = false
+      resetConvocatoriaForm()
       loadData()
       $q.notify({ type: 'positive', message: 'Guardado exitosamente' })
    } catch { $q.notify({ type: 'negative', message: 'Error al guardar' }) }
    finally { saving.value = false }
+}
+
+const resetConvocatoriaForm = () => {
+   convocatoriaForm.value = { titulo: '', descripcion: '', fecha_inicio: '', fecha_cierre: '', estado: 'borrador', ofertas: [], documentos: [] }
+   editingConvocatoria.value = null
+   step.value = 1
+   tempOferta.value = { sede_id: null, cargos_ids: [], vacantes_map: {} }
+}
+
+const toggleDocumento = (tipoId) => {
+   const idx = convocatoriaForm.value.documentos.findIndex(d => d.tipo_documento_id === tipoId)
+   if (idx >= 0) {
+      convocatoriaForm.value.documentos.splice(idx, 1)
+   } else {
+      convocatoriaForm.value.documentos.push({ tipo_documento_id: tipoId, obligatorio: true })
+   }
+}
+
+const isDocumentoSelected = (tipoId) => {
+   return convocatoriaForm.value.documentos.some(d => d.tipo_documento_id === tipoId)
+}
+
+const toggleObligatorio = (tipoId) => {
+   const doc = convocatoriaForm.value.documentos.find(d => d.tipo_documento_id === tipoId)
+   if (doc) {
+      doc.obligatorio = !doc.obligatorio
+   }
+}
+
+const isObligatorio = (tipoId) => {
+   const doc = convocatoriaForm.value.documentos.find(d => d.tipo_documento_id === tipoId)
+   return doc?.obligatorio ?? true
 }
 
 const eliminarConvocatoria = async (item) => {
