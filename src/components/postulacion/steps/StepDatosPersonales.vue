@@ -60,12 +60,20 @@
             </div>
             <div class="col-12 col-md-6">
                 <div class="text-subtitle2 q-mb-sm text-grey-7">Foto de Perfil *</div>
-                <div v-if="existingPhotoUrl" class="mb-2 flex items-center gap-3">
-                    <q-avatar size="50px">
-                        <img :src="existingPhotoUrl">
+                <!-- Preview de foto existente o nueva -->
+                <div v-if="photoPreviewUrl"
+                    class="mb-3 flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <q-avatar size="70px" class="shadow-md">
+                        <img :src="photoPreviewUrl">
                     </q-avatar>
-                    <div class="text-xs text-green-700 font-bold bg-green-50 px-2 py-1 rounded">
-                        Foto actual cargada
+                    <div>
+                        <div class="text-sm font-bold text-green-700 flex items-center gap-1">
+                            <q-icon name="check_circle" color="positive" />
+                            Foto cargada
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">
+                            {{ store.postulante.foto_perfil?.name || 'Foto de perfil' }}
+                        </div>
                     </div>
                 </div>
                 <q-file v-model="store.postulante.foto_perfil" filled label="Seleccionar foto (Rostro)" accept="image/*"
@@ -101,9 +109,22 @@ const emit = defineEmits(['next', 'prev'])
 
 const existingPhotoUrl = computed(() => {
     if (store.esPostulanteExistente && typeof store.postulante.foto_perfil === 'string') {
-        return `http://localhost:8000/storage/${store.postulante.foto_perfil}`
+        const storageBaseUrl = process.env.PROD
+            ? 'https://api.sipo.xpertiaplus.com/storage/'
+            : 'http://localhost:8000/storage/'
+        return storageBaseUrl + store.postulante.foto_perfil
     }
     return null
+})
+
+// Preview URL: muestra foto existente del servidor O preview de archivo nuevo
+const photoPreviewUrl = computed(() => {
+    // Si se subió un nuevo archivo, crear URL temporal
+    if (store.postulante.foto_perfil instanceof File) {
+        return URL.createObjectURL(store.postulante.foto_perfil)
+    }
+    // Si es postulante existente con foto en servidor
+    return existingPhotoUrl.value
 })
 
 const verificarCI = async () => {

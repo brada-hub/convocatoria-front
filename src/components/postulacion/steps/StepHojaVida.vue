@@ -1,6 +1,21 @@
 <template>
   <q-form ref="form" class="step-content animate-fadeInUp scrollable-step bg-grey-1 q-pa-lg">
 
+    <!-- BANNER: Información de la Convocatoria Seleccionada -->
+    <div v-if="store.convocatoriaSeleccionada" class="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white shrink-0">
+          <q-icon name="campaign" size="20px" />
+        </div>
+        <div class="flex-1">
+          <div class="font-bold text-gray-800">{{ store.convocatoriaSeleccionada.titulo }}</div>
+          <p class="text-xs text-gray-500 mt-1 line-clamp-2" v-if="store.convocatoriaSeleccionada.descripcion">
+            {{ store.convocatoriaSeleccionada.descripcion }}
+          </p>
+        </div>
+      </div>
+    </div>
+
     <div class="text-center q-mb-xl">
       <h2 class="text-h5 text-weight-bold text-gray-800 q-my-none">Documentación de Respaldo</h2>
       <p class="text-gray-500 q-mt-sm">Adjunte los documentos que respalden su formación y experiencia
@@ -16,12 +31,25 @@
       <ul class="q-my-xs q-pl-md">
         <li>Todos los documentos deben estar en formato <strong>PDF</strong></li>
         <li>El tamaño máximo por archivo es de <strong>2 MB</strong></li>
-        <li>Suba únicamente los documentos originales, <strong>sin respaldos</strong></li>
+        <li>Suba <strong>cada documento por separado</strong> (NO suba un solo PDF con todo junto)</li>
       </ul>
     </q-banner>
 
-    <!-- SECCIÓN 0: Documentos Requeridos (Dinámico) -->
+    <!-- SECCIÓN 0: Documentos Requeridos por la Convocatoria (Dinámico) -->
     <div v-if="store.documentosRequeridos.length > 0" class="section-container q-mb-xxl">
+      <!-- Banner de advertencia destacado -->
+      <q-banner class="bg-orange-100 text-orange-900 q-mb-lg rounded-xl border-2 border-orange-300">
+        <template v-slot:avatar>
+          <q-icon name="warning" color="orange" size="28px" />
+        </template>
+        <div class="text-weight-bold text-lg">Documentos Requeridos para esta Convocatoria</div>
+        <div class="text-sm mt-1">
+          La convocatoria <strong>"{{ store.convocatoriaSeleccionada?.titulo }}"</strong> requiere los siguientes
+          documentos.
+          Los marcados con <span class="text-red-600 font-bold">*</span> son obligatorios.
+        </div>
+      </q-banner>
+
       <div class="flex items-center gap-3 q-mb-lg pb-4 border-b border-gray-200">
         <div class="bg-orange-100 p-2 rounded-lg text-orange">
           <q-icon name="folder_special" size="24px" />
@@ -118,6 +146,31 @@
 
           <div class="col-12 col-md-6">
             <div class="row q-col-gutter-y-md">
+              <!-- NIVEL ACADÉMICO SELECTOR -->
+              <div class="col-12">
+                <label class="block text-sm font-bold text-gray-700 mb-1">Nivel Académico <span
+                    class="text-red-500">*</span></label>
+                <q-select v-model="item.nivel" :options="nivelesAcademicos" emit-value map-options outlined dense
+                  bg-color="white" placeholder="Seleccione el nivel" :rules="[val => !!val || 'Seleccione un nivel']">
+                  <template v-slot:option="scope">
+                    <q-item v-bind="scope.itemProps">
+                      <q-item-section avatar>
+                        <q-icon :name="scope.opt.icon" :color="scope.opt.color" />
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-label>{{ scope.opt.label }}</q-item-label>
+                        <q-item-label caption>{{ scope.opt.desc }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                  <template v-slot:selected-item="scope">
+                    <div class="flex items-center gap-2" v-if="scope.opt">
+                      <q-icon :name="scope.opt.icon" :color="scope.opt.color" size="18px" />
+                      <span>{{ scope.opt.label }}</span>
+                    </div>
+                  </template>
+                </q-select>
+              </div>
               <div class="col-12">
                 <label class="block text-sm font-bold text-gray-700 mb-1">Título / Profesión <span
                     class="text-red-500">*</span></label>
@@ -481,6 +534,15 @@ const tiposProduccion = [
   { label: 'Investigación', value: 'investigacion' },
   { label: 'Proyecto', value: 'proyecto' },
   { label: 'Otro', value: 'otro' },
+]
+
+// Niveles académicos con iconos y descripciones
+const nivelesAcademicos = [
+  { label: 'Licenciatura', value: 'licenciatura', icon: 'school', color: 'primary', desc: 'Grado universitario (5 años)' },
+  { label: 'Diplomado', value: 'diplomado', icon: 'workspace_premium', color: 'orange', desc: 'Curso de especialización corto' },
+  { label: 'Especialidad', value: 'especialidad', icon: 'medical_services', color: 'teal', desc: 'Formación especializada (1-2 años)' },
+  { label: 'Maestría', value: 'maestria', icon: 'psychology', color: 'purple', desc: 'Postgrado (2-3 años)' },
+  { label: 'Doctorado', value: 'doctorado', icon: 'science', color: 'red', desc: 'Máximo grado académico (3-5 años)' },
 ]
 
 // Refs para archivos

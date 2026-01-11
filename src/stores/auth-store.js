@@ -22,7 +22,8 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         // Obtener cookie CSRF desde la raíz del dominio (api.defaults.baseURL apunta a /api)
-        const baseUrl = api.defaults.baseURL.replace('/api', '')
+        // Usar regex para reemplazar solo el /api del final para no romper subdominios como api.dominio.com
+        const baseUrl = api.defaults.baseURL.replace(/\/api$/, '')
         await api.get(`${baseUrl}/sanctum/csrf-cookie`)
         const response = await api.post('/auth/login', { email, password })
 

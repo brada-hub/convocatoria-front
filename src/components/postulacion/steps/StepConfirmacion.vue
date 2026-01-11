@@ -73,27 +73,83 @@ const enviarPostulacion = async () => {
         return
     }
 
-    try {
-        await store.enviarPostulacion()
+    // VALIDAR TAMAÑO DE ARCHIVOS (máx 2MB = 2097152 bytes)
+    const MAX_SIZE = 2097152 // 2MB
+    const archivosGrandes = []
 
-        $q.notify({
-            type: 'positive',
-            message: '¡Postulación enviada exitosamente!',
-            icon: 'check_circle',
-            timeout: 5000
-        })
+    // Verificar foto de perfil
+    if (store.postulante.foto_perfil instanceof File && store.postulante.foto_perfil.size > MAX_SIZE) {
+        archivosGrandes.push(`Foto de perfil: ${(store.postulante.foto_perfil.size / 1024 / 1024).toFixed(2)} MB`)
+    }
 
-        // Dialogo de Éxito
+    // Verificar formaciones
+    store.formaciones.forEach((item, idx) => {
+        if (item.archivo instanceof File && item.archivo.size > MAX_SIZE) {
+            archivosGrandes.push(`Formación ${idx + 1}: ${(item.archivo.size / 1024 / 1024).toFixed(2)} MB`)
+        }
+    })
+
+    // Verificar experiencias
+    store.experiencias.forEach((item, idx) => {
+        if (item.archivo instanceof File && item.archivo.size > MAX_SIZE) {
+            archivosGrandes.push(`Experiencia ${idx + 1}: ${(item.archivo.size / 1024 / 1024).toFixed(2)} MB`)
+        }
+    })
+
+    // Verificar capacitaciones
+    store.capacitaciones.forEach((item, idx) => {
+        if (item.archivo instanceof File && item.archivo.size > MAX_SIZE) {
+            archivosGrandes.push(`Capacitación ${idx + 1}: ${(item.archivo.size / 1024 / 1024).toFixed(2)} MB`)
+        }
+    })
+
+    // Si hay archivos que superan el tamaño, mostrar error
+    if (archivosGrandes.length > 0) {
         $q.dialog({
-            title: '¡Postulación Exitosa!',
-            message: 'Su postulación ha sido registrada. Puede consultar el estado de su postulación en cualquier momento ingresando su CI.',
+            title: '⚠️ Archivos demasiado grandes',
+            message: `Los siguientes archivos superan el límite de 2 MB:\n\n• ${archivosGrandes.join('\n• ')}\n\nPor favor, reduzca el tamaño de los archivos antes de continuar.`,
+            html: false,
             persistent: true,
             ok: {
                 label: 'Entendido',
-                color: 'primary'
+                color: 'negative',
+                flat: true
+            }
+        })
+        return
+    }
+
+    try {
+        await store.enviarPostulacion()
+
+        // Dialogo de Éxito Premium usando HTML
+        $q.dialog({
+            title: '',
+            message: `
+                <div style="text-align: center;">
+                    <div style="width: 80px; height: 80px; margin: 0 auto 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 40px;">✓</span>
+                    </div>
+                    <h3 style="font-size: 1.5rem; font-weight: bold; color: #1f2937; margin: 0 0 12px 0;">¡Postulación Exitosa!</h3>
+                    <p style="color: #6b7280; margin: 0 0 20px 0;">
+                        Su postulación ha sido registrada correctamente.<br/>
+                        Puede consultar el estado ingresando su CI.
+                    </p>
+                    <div style="background: #ecfdf5; color: #065f46; padding: 12px; border-radius: 8px; font-size: 0.875rem;">
+                        📋 Guarde su CI para futuras consultas
+                    </div>
+                </div>
+            `,
+            html: true,
+            persistent: true,
+            ok: {
+                label: 'Continuar',
+                color: 'primary',
+                unelevated: true,
+                noCaps: true,
+                padding: '12px 32px'
             }
         }).onOk(() => {
-            // Resetear store y avisar al padre
             store.reset()
             emit('success')
         })

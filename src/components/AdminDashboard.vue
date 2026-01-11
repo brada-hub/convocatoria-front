@@ -635,16 +635,24 @@
          </div>
       </q-dialog>
 
-      <!-- Dialog Expediente (Similar al ofertas) -->
+      <!-- Dialog Expediente con Panel de Previsualización -->
       <q-dialog v-model="showExpedienteDialog" maximized transition-show="slide-up" transition-hide="slide-down">
          <div class="bg-gray-50 min-h-screen flex flex-col">
             <div
                class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center shadow-sm sticky top-0 z-50">
                <div class="flex items-center gap-4">
-                  <div
-                     class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
-                     {{ selectedPostulante?.nombres[0] }}
-                  </div>
+                  <!-- Foto del postulante o inicial - Click para ampliar -->
+                  <q-avatar size="56px"
+                     class="shadow-md border-2 border-white cursor-pointer hover:ring-4 hover:ring-blue-200 transition-all"
+                     @click="selectedPostulante?.foto_perfil && (showPhotoDialog = true)">
+                     <img v-if="selectedPostulante?.foto_perfil" :src="getStorageUrl(selectedPostulante.foto_perfil)"
+                        @error="$event.target.src = ''">
+                     <div v-else
+                        class="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl">
+                        {{ selectedPostulante?.nombres?.[0] || 'P' }}
+                     </div>
+                     <q-tooltip v-if="selectedPostulante?.foto_perfil">Click para ampliar foto</q-tooltip>
+                  </q-avatar>
                   <div>
                      <h2 class="text-lg font-bold text-gray-900">{{ selectedPostulante?.nombres }} {{
                         selectedPostulante?.apellidos }}</h2>
@@ -655,40 +663,71 @@
                      name="close" size="24px" /></button>
             </div>
 
-            <div class="flex-1 overflow-auto p-8">
-               <div class="max-w-5xl mx-auto space-y-8">
-                  <!-- Secciones de expediente con estilo Tailwind Card -->
-                  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                     <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2"><q-icon name="school"
-                           class="text-blue-500" /> Formación Académica</h3>
-                     <q-table :rows="selectedPostulante?.formaciones || []" :columns="columnasFormacion" flat
-                        class="qt-clean" row-key="id" :rows-per-page-options="[5, 10, 20]">
-                        <template v-slot:body-cell-archivo_pdf="props">
-                           <q-td :props="props">
-                              <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
-                                 @click="abrirPDF(props.row.archivo_pdf)">
-                                 <q-tooltip>Ver PDF</q-tooltip>
-                              </q-btn>
-                              <span v-else class="text-grey-5">Sin archivo</span>
-                           </q-td>
-                        </template>
-                     </q-table>
+            <!-- Layout dividido: Datos a la izquierda, Preview a la derecha -->
+            <div class="flex-1 flex overflow-hidden">
+               <!-- Panel Izquierdo: Tablas de datos -->
+               <div class="w-1/2 overflow-auto p-6 border-r border-gray-200">
+                  <div class="space-y-6">
+                     <!-- Formación Académica -->
+                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                        <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="school"
+                              class="text-blue-500" /> Formación Académica</h3>
+                        <q-table :rows="selectedPostulante?.formaciones || []" :columns="columnasFormacion" flat
+                           class="qt-clean" row-key="id" :rows-per-page-options="[5, 10, 20]" dense>
+                           <template v-slot:body-cell-archivo_pdf="props">
+                              <q-td :props="props">
+                                 <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
+                                    @click="previewPDF(props.row.archivo_pdf, props.row.titulo_profesion || 'Documento')">
+                                    <q-tooltip>Ver PDF</q-tooltip>
+                                 </q-btn>
+                                 <span v-else class="text-grey-5">Sin archivo</span>
+                              </q-td>
+                           </template>
+                        </q-table>
+                     </div>
+                     <!-- Experiencia -->
+                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                        <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="work"
+                              class="text-orange-500" /> Experiencia</h3>
+                        <q-table :rows="selectedPostulante?.experiencias || []" :columns="columnasExperiencia" flat
+                           class="qt-clean" row-key="id" :rows-per-page-options="[5, 10, 20]" dense>
+                           <template v-slot:body-cell-archivo_pdf="props">
+                              <q-td :props="props">
+                                 <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
+                                    @click="previewPDF(props.row.archivo_pdf, props.row.cargo || 'Experiencia')">
+                                    <q-tooltip>Ver PDF</q-tooltip>
+                                 </q-btn>
+                                 <span v-else class="text-grey-5">Sin archivo</span>
+                              </q-td>
+                           </template>
+                        </q-table>
+                     </div>
                   </div>
-                  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                     <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2"><q-icon name="work"
-                           class="text-orange-500" /> Experiencia</h3>
-                     <q-table :rows="selectedPostulante?.experiencias || []" :columns="columnasExperiencia" flat
-                        class="qt-clean" row-key="id" :rows-per-page-options="[5, 10, 20]">
-                        <template v-slot:body-cell-archivo_pdf="props">
-                           <q-td :props="props">
-                              <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
-                                 @click="abrirPDF(props.row.archivo_pdf)">
-                                 <q-tooltip>Ver PDF</q-tooltip>
-                              </q-btn>
-                              <span v-else class="text-grey-5">Sin archivo</span>
-                           </q-td>
-                        </template>
-                     </q-table>
+               </div>
+
+               <!-- Panel Derecho: Previsualización de PDF -->
+               <div class="w-1/2 bg-gray-100 flex flex-col">
+                  <div v-if="!previewPdfUrl" class="flex-1 flex flex-col items-center justify-center text-gray-400">
+                     <q-icon name="description" size="80px" class="mb-4 opacity-30" />
+                     <p class="text-lg font-medium">Seleccione un documento</p>
+                     <p class="text-sm">Haga clic en el icono PDF para previsualizarlo aquí</p>
+                  </div>
+                  <div v-else class="flex-1 flex flex-col">
+                     <div class="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                           <q-icon name="picture_as_pdf" class="text-red-500" size="20px" />
+                           <span class="font-medium text-gray-700 text-sm">{{ previewPdfName }}</span>
+                        </div>
+                        <div class="flex gap-1">
+                           <q-btn flat dense round icon="open_in_new" size="sm" @click="abrirPDF(currentPdfPath)">
+                              <q-tooltip>Abrir en nueva pestaña</q-tooltip>
+                           </q-btn>
+                           <q-btn flat dense round icon="close" size="sm" @click="closePreview">
+                              <q-tooltip>Cerrar preview</q-tooltip>
+                           </q-btn>
+                        </div>
+                     </div>
+                     <iframe :src="previewPdfUrl" class="flex-1 w-full bg-white" />
                   </div>
                </div>
             </div>
@@ -719,6 +758,32 @@
                   <q-input v-model="publicLink" readonly filled dense class="flex-1 bg-gray-50 font-mono text-xs" />
                   <q-btn color="primary" icon="content_copy" label="Copiar" @click="copyPortalLink" no-caps
                      class="rounded-lg" />
+               </div>
+            </q-card-section>
+         </q-card>
+      </q-dialog>
+
+      <!-- Dialog Foto Ampliada del Postulante -->
+      <q-dialog v-model="showPhotoDialog" class="photo-preview-dialog">
+         <q-card class="bg-white rounded-2xl overflow-hidden" style="max-width: 500px;">
+            <q-card-section class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 px-4">
+               <div class="flex justify-between items-center">
+                  <div class="flex items-center gap-2">
+                     <q-icon name="photo_camera" size="20px" />
+                     <span class="font-bold">Foto del Postulante</span>
+                  </div>
+                  <q-btn flat dense round icon="close" color="white" @click="showPhotoDialog = false" />
+               </div>
+            </q-card-section>
+            <q-card-section class="flex flex-col items-center p-6 bg-gray-50">
+               <div class="w-72 h-72 rounded-2xl overflow-hidden shadow-xl border-4 border-white">
+                  <img v-if="selectedPostulante?.foto_perfil" :src="getStorageUrl(selectedPostulante.foto_perfil)"
+                     class="w-full h-full object-cover" @error="$event.target.src = ''">
+               </div>
+               <div class="mt-4 text-center">
+                  <div class="font-bold text-lg text-gray-800">{{ selectedPostulante?.nombres }} {{
+                     selectedPostulante?.apellidos }}</div>
+                  <div class="text-sm text-gray-500">CI: {{ selectedPostulante?.ci }}</div>
                </div>
             </q-card-section>
          </q-card>
@@ -803,6 +868,7 @@ const showConvocatoriaDialog = ref(false)
 const showOfertasDialog = ref(false)
 const showExpedienteDialog = ref(false)
 const showShareDialog = ref(false)
+const showPhotoDialog = ref(false)
 const qrCodeUrl = ref('')
 const publicLink = ref('')
 
@@ -892,11 +958,34 @@ const sedesOptions = computed(() => sedes.value.map(s => ({ label: s.nombre, val
 const cargosOptions = computed(() => cargos.value.map(c => ({ label: c.nombre, value: c.id })))
 const convocatoriasOptions = computed(() => convocatorias.value.map(c => ({ label: c.titulo, value: c.id })))
 
-// Función para abrir PDFs
+// Función para abrir PDFs en nueva pestaña
 const abrirPDF = (rutaPdf) => {
    if (!rutaPdf) return
-   const baseUrl = 'http://localhost:8000/storage/'
+   const baseUrl = process.env.PROD
+      ? 'https://api.sipo.xpertiaplus.com/storage/'
+      : 'http://localhost:8000/storage/'
    window.open(baseUrl + rutaPdf, '_blank')
+}
+
+// Estado y funciones para preview de PDF en el panel lateral
+const previewPdfUrl = ref('')
+const previewPdfName = ref('')
+const currentPdfPath = ref('')
+
+const previewPDF = (rutaPdf, nombre) => {
+   if (!rutaPdf) return
+   const baseUrl = process.env.PROD
+      ? 'https://api.sipo.xpertiaplus.com/storage/'
+      : 'http://localhost:8000/storage/'
+   previewPdfUrl.value = baseUrl + rutaPdf
+   previewPdfName.value = nombre || 'Documento'
+   currentPdfPath.value = rutaPdf
+}
+
+const closePreview = () => {
+   previewPdfUrl.value = ''
+   previewPdfName.value = ''
+   currentPdfPath.value = ''
 }
 
 // Login logic removed - handled by router and LoginPage
@@ -918,6 +1007,15 @@ const copyPortalLink = () => {
 
 const getCargoName = (id) => {
    return cargos.value.find(c => c.id === id)?.nombre || 'Cargo desconocido'
+}
+
+// Helper para obtener la URL completa de storage
+const getStorageUrl = (path) => {
+   if (!path) return ''
+   const baseUrl = import.meta.env.PROD
+      ? 'https://api.sipo.xpertiaplus.com/storage/'
+      : 'http://localhost:8000/storage/'
+   return baseUrl + path
 }
 
 const loadData = async () => {

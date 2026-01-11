@@ -21,7 +21,7 @@
 
         <!-- PASO 4: Confirmación -->
         <q-step :name="4" title="Confirmar" icon="send">
-          <StepConfirmacion @prev="store.step--" @success="store.step = 1" />
+          <StepConfirmacion @prev="store.step--" @success="onSuccess" />
         </q-step>
 
       </q-stepper>
@@ -32,6 +32,7 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
 import { usePostulacionStore } from 'stores/postulacion-store'
 
 // Import Steps
@@ -42,6 +43,7 @@ import StepConfirmacion from './postulacion/steps/StepConfirmacion.vue'
 
 const store = usePostulacionStore()
 const $q = useQuasar()
+const router = useRouter()
 
 // Cargar convocatorias al montar
 onMounted(async () => {
@@ -56,6 +58,12 @@ onMounted(async () => {
     })
   }
 })
+
+// Redirigir a inicio después de una postulación exitosa
+const onSuccess = () => {
+  store.step = 1
+  router.push('/')
+}
 </script>
 
 <!-- Global Animations shared with children -->

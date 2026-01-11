@@ -23,6 +23,7 @@ export const usePostulacionStore = defineStore('postulacion', {
     // Convocatorias y ofertas
     convocatorias: [],
     convocatoriaActual: null,
+    convocatoriaSeleccionadaId: null, // ID de la convocatoria elegida por el usuario
     ofertasSeleccionadas: [],
 
     // Documentos requeridos por la convocatoria (dinámico)
@@ -49,6 +50,34 @@ export const usePostulacionStore = defineStore('postulacion', {
 
     expedienteCompleto: (state) =>
       state.formaciones.length > 0,
+
+    // Convocatoria actualmente seleccionada
+    convocatoriaSeleccionada: (state) => {
+      if (!state.convocatoriaSeleccionadaId) return null
+      return state.convocatorias.find(c => c.id === state.convocatoriaSeleccionadaId)
+    },
+
+    // Ofertas de la convocatoria seleccionada agrupadas por sede
+    ofertasDeConvocatoriaActual: (state) => {
+      const conv = state.convocatorias.find(c => c.id === state.convocatoriaSeleccionadaId)
+      if (!conv) return []
+
+      const sedesMap = {}
+      conv.ofertas.forEach(oferta => {
+        const sedeId = oferta.sede.id
+        if (!sedesMap[sedeId]) {
+          sedesMap[sedeId] = {
+            sede: oferta.sede,
+            cargos: []
+          }
+        }
+        sedesMap[sedeId].cargos.push({
+          id: oferta.id,
+          cargo: oferta.cargo
+        })
+      })
+      return Object.values(sedesMap)
+    },
 
     ofertasAgrupadasPorSede: (state) => {
       if (!state.convocatoriaActual?.ofertas_por_sede) return []
@@ -83,6 +112,7 @@ export const usePostulacionStore = defineStore('postulacion', {
       }
       this.esPostulanteExistente = false
       this.tieneExpediente = false
+      this.convocatoriaSeleccionadaId = null
       this.ofertasSeleccionadas = []
       this.documentosRequeridos = []
       this.documentos = {}
@@ -92,6 +122,37 @@ export const usePostulacionStore = defineStore('postulacion', {
       this.producciones = []
       this.reconocimientos = []
       this.resultado = null
+    },
+
+    // Seleccionar una convocatoria y cargar sus documentos requeridos
+    seleccionarConvocatoria(convocatoriaId) {
+      this.convocatoriaSeleccionadaId = convocatoriaId
+      this.ofertasSeleccionadas = [] // Resetear ofertas al cambiar de convocatoria
+
+      // Cargar documentos requeridos de la convocatoria (soporta ambos formatos de nombre)
+      const conv = this.convocatorias.find(c => c.id === convocatoriaId)
+      // Laravel puede devolver como documentos_requeridos o documentosRequeridos
+      const docs = conv?.documentos_requeridos || conv?.documentosRequeridos || []
+
+      if (docs.length > 0) {
+        // Mapear los documentos incluyendo el campo obligatorio del pivot
+        this.documentosRequeridos = docs.map(doc => ({
+          id: doc.id,
+          nombre: doc.nombre,
+          descripcion: doc.descripcion,
+          obligatorio: doc.pivot?.obligatorio ?? true, // Por defecto obligatorio
+          orden: doc.pivot?.orden ?? 0
+        }))
+
+        // Inicializar objeto de documentos vacío
+        this.documentos = {}
+        this.documentosRequeridos.forEach(doc => {
+          this.documentos[doc.id] = null
+        })
+      } else {
+        this.documentosRequeridos = []
+        this.documentos = {}
+      }
     },
 
     // Cargar convocatorias abiertas

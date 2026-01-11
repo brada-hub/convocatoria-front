@@ -7,6 +7,13 @@
          <div class="absolute top-10 left-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
 
          <div class="relative z-10 container mx-auto px-4 py-8 text-white">
+            <!-- Botón regresar al inicio -->
+            <router-link to="/"
+               class="inline-flex items-center gap-2 text-white/80 hover:text-white mb-4 transition-colors text-sm">
+               <q-icon name="arrow_back" size="20px" />
+               <span>Volver al Portal</span>
+            </router-link>
+
             <div class="flex items-center gap-2 text-blue-100 mb-1 text-sm font-medium uppercase tracking-wider">
                <q-icon name="verified" size="xs" />
                Proceso Oficial

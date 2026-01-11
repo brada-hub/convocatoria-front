@@ -74,7 +74,9 @@ watch(() => props.file, async (newFile) => {
                 pdfUrl.value = newFile
             } else {
                 // Es una ruta relativa del storage
-                const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+                const baseUrl = process.env.PROD
+                    ? 'https://api.sipo.xpertiaplus.com'
+                    : 'http://localhost:8000'
                 pdfUrl.value = `${baseUrl}/storage/${newFile}`
             }
         }
