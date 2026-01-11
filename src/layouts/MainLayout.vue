@@ -103,11 +103,18 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from 'stores/auth-store'
+import { useGoogleDrive } from 'src/composables/useGoogleDrive'
 
 const authStore = useAuthStore()
+const { loadGoogleScripts } = useGoogleDrive()
+
+onMounted(() => {
+  loadGoogleScripts()
+})
+
 const leftDrawerOpen = ref(false)
 const route = useRoute()
 const router = useRouter()

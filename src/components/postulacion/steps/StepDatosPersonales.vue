@@ -76,13 +76,19 @@
                         </div>
                     </div>
                 </div>
-                <q-file v-model="store.postulante.foto_perfil" filled label="Seleccionar foto (Rostro)" accept="image/*"
-                    max-file-size="2097152" @rejected="onRejected"
-                    :rules="[val => (!!val || !!existingPhotoUrl) || 'Foto requerida']">
-                    <template v-slot:prepend>
-                        <q-icon name="photo_camera" />
-                    </template>
-                </q-file>
+                <div class="flex items-start gap-2">
+                    <q-file v-model="store.postulante.foto_perfil" filled label="Seleccionar foto (Rostro)"
+                        accept="image/*" max-file-size="2097152" @rejected="onRejected" class="full-width"
+                        :rules="[val => (!!val || !!existingPhotoUrl) || 'Foto requerida']">
+                        <template v-slot:prepend>
+                            <q-icon name="photo_camera" />
+                        </template>
+                    </q-file>
+                    <div class="pt-2">
+                        <GoogleDriveUploadBtn mime-types="image/jpeg,image/png,image/jpg"
+                            @file-selected="(f) => store.postulante.foto_perfil = f" />
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -100,6 +106,7 @@
 import { ref, computed } from 'vue'
 import { usePostulacionStore } from 'stores/postulacion-store'
 import { useQuasar } from 'quasar'
+import GoogleDriveUploadBtn from 'src/components/common/GoogleDriveUploadBtn.vue'
 
 const store = usePostulacionStore()
 const $q = useQuasar()

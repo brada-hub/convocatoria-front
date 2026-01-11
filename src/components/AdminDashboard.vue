@@ -353,7 +353,7 @@
                           class="flex items-center gap-3 bg-white p-2 rounded-lg border">
                           <span class="flex-1 text-xs font-medium text-gray-700 truncate">{{
                             getCargoName(id)
-                          }}</span>
+                            }}</span>
                           <q-input v-model.number="tempOferta.vacantes_map[id]" type="number" outlined dense
                             bg-color="white" style="width: 80px" min="1" />
                         </div>
@@ -391,7 +391,7 @@
                         class="hover:bg-gray-50 transition-colors">
                         <td class="p-4 font-medium text-gray-900">{{
                           sedes.find(s => s.id === oferta.sede_id)?.nombre
-                        }}</td>
+                          }}</td>
                         <td class="p-4 text-gray-700">{{cargos.find(c => c.id === oferta.cargo_id)?.nombre}}
                         </td>
                         <td class="p-4 text-center font-mono">
@@ -710,10 +710,96 @@
                   <template v-slot:body-cell-archivo_pdf="props">
                     <q-td :props="props">
                       <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
-                        @click="previewPDF(props.row.archivo_pdf, props.row.cargo || 'Experiencia')">
+                        @click="previewPDF(props.row.archivo_pdf, props.row.cargo_desempenado || 'Experiencia')">
                         <q-tooltip>Ver PDF</q-tooltip>
                       </q-btn>
                       <span v-else class="text-grey-5">Sin archivo</span>
+                    </q-td>
+                  </template>
+                </q-table>
+              </div>
+
+              <!-- Capacitaciones -->
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
+                v-if="selectedPostulante?.capacitaciones?.length">
+                <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="menu_book"
+                    class="text-teal-500" /> Cursos / Capacitaciones</h3>
+                <q-table :rows="selectedPostulante?.capacitaciones || []" :columns="[
+                  { name: 'curso', label: 'Curso', field: 'nombre_curso', align: 'left' },
+                  { name: 'inst', label: 'Institución', field: 'institucion_emisora', align: 'left' },
+                  { name: 'anio', label: 'Año', field: 'anio', align: 'center' },
+                  { name: 'pdf', label: 'PDF', field: 'archivo_pdf', align: 'center' }
+                ]" flat class="qt-clean" row-key="id" hide-pagination dense>
+                  <template v-slot:body-cell-pdf="props">
+                    <q-td :props="props">
+                      <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
+                        @click="previewPDF(props.row.archivo_pdf, props.row.nombre_curso)">
+                        <q-tooltip>Ver PDF</q-tooltip>
+                      </q-btn>
+                    </q-td>
+                  </template>
+                </q-table>
+              </div>
+
+              <!-- Producción Intelectual -->
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
+                v-if="selectedPostulante?.producciones?.length">
+                <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="auto_stories"
+                    class="text-indigo-500" /> Producción Intelectual</h3>
+                <q-table :rows="selectedPostulante?.producciones || []" :columns="[
+                  { name: 'titulo', label: 'Título', field: 'titulo', align: 'left' },
+                  { name: 'tipo', label: 'Tipo', field: 'tipo', align: 'left' },
+                  { name: 'anio', label: 'Año', field: 'anio', align: 'center' },
+                  { name: 'pdf', label: 'PDF', field: 'archivo_pdf', align: 'center' }
+                ]" flat class="qt-clean" row-key="id" hide-pagination dense>
+                  <template v-slot:body-cell-pdf="props">
+                    <q-td :props="props">
+                      <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
+                        @click="previewPDF(props.row.archivo_pdf, props.row.titulo)">
+                        <q-tooltip>Ver PDF</q-tooltip>
+                      </q-btn>
+                    </q-td>
+                  </template>
+                </q-table>
+              </div>
+
+              <!-- Reconocimientos -->
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
+                v-if="selectedPostulante?.reconocimientos?.length">
+                <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="emoji_events"
+                    class="text-yellow-600" /> Reconocimientos</h3>
+                <q-table :rows="selectedPostulante?.reconocimientos || []" :columns="[
+                  { name: 'titulo', label: 'Título', field: 'titulo', align: 'left' },
+                  { name: 'entidad', label: 'Otorgado por', field: 'otorgado_por', align: 'left' },
+                  { name: 'anio', label: 'Año', field: 'anio', align: 'center' },
+                  { name: 'pdf', label: 'PDF', field: 'archivo_pdf', align: 'center' }
+                ]" flat class="qt-clean" row-key="id" hide-pagination dense>
+                  <template v-slot:body-cell-pdf="props">
+                    <q-td :props="props">
+                      <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
+                        @click="previewPDF(props.row.archivo_pdf, props.row.titulo)">
+                        <q-tooltip>Ver PDF</q-tooltip>
+                      </q-btn>
+                    </q-td>
+                  </template>
+                </q-table>
+              </div>
+
+              <!-- DOCUMENTOS GENERALES -->
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
+                v-if="selectedPostulante?.documentos?.length">
+                <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="folder_open"
+                    class="text-purple-500" /> Documentos Generales</h3>
+                <q-table :rows="selectedPostulante?.documentos || []" :columns="[
+                  { name: 'nombre', label: 'Documento', field: row => row.tipo_documento?.nombre || 'Doc', align: 'left' },
+                  { name: 'pdf', label: 'PDF', field: 'archivo_pdf', align: 'center' }
+                ]" flat class="qt-clean" row-key="id" hide-pagination dense>
+                  <template v-slot:body-cell-pdf="props">
+                    <q-td :props="props">
+                      <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
+                        @click="previewPDF(props.row.archivo_pdf, props.row.tipo_documento?.nombre)">
+                        <q-tooltip>Ver PDF</q-tooltip>
+                      </q-btn>
                     </q-td>
                   </template>
                 </q-table>

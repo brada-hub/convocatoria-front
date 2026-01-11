@@ -55,9 +55,12 @@
               {{ doc.nombre }} <span v-if="doc.obligatorio" class="text-red-500">*</span>
             </label>
             <div
-              class="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-orange-50 transition-colors cursor-pointer"
+              class="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-orange-50 transition-colors cursor-pointer relative"
               :class="store.documentos[doc.id] ? 'border-green-400 bg-green-50' : 'border-gray-300'"
-              @click="triggerDocumentPicker(doc.id)">
+              @click.self="triggerDocumentPicker(doc.id)">
+              <div class="absolute right-2 top-2 z-10">
+                <GoogleDriveUploadBtn @file-selected="(f) => store.setDocumento(doc.id, f)" />
+              </div>
               <q-icon :name="store.documentos[doc.id] ? 'check_circle' : 'cloud_upload'" size="36px"
                 :color="store.documentos[doc.id] ? 'positive' : 'orange'" class="q-mb-sm" />
               <div class="text-sm font-medium text-center"
@@ -96,8 +99,11 @@
             <label class="block text-sm font-bold text-gray-700 mb-2">Copia de Título (PDF) <span
                 class="text-red-500">*</span></label>
             <div
-              class="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50 transition-colors cursor-pointer"
-              @click="triggerFilePicker('form', index)">
+              class="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50 transition-colors cursor-pointer relative"
+              @click.self="triggerFilePicker('form', index)">
+              <div class="absolute right-2 top-2 z-10">
+                <GoogleDriveUploadBtn @file-selected="(f) => item.archivo = f" />
+              </div>
               <q-icon name="cloud_upload" size="30px" color="primary" class="q-mb-sm" />
               <div class="text-sm text-primary font-medium">{{ item.archivo ? 'Archivo Cargado' : 'Subir Título' }}
               </div>
@@ -164,8 +170,11 @@
             <label class="block text-sm font-bold text-gray-700 mb-2">Certificado (PDF) <span
                 class="text-red-500">*</span></label>
             <div
-              class="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50 transition-colors cursor-pointer"
-              @click="triggerFilePicker('exp', index)">
+              class="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50 transition-colors cursor-pointer relative"
+              @click.self="triggerFilePicker('exp', index)">
+              <div class="absolute right-2 top-2 z-10">
+                <GoogleDriveUploadBtn @file-selected="(f) => item.archivo = f" />
+              </div>
               <q-icon name="cloud_upload" size="30px" color="primary" class="q-mb-sm" />
               <div class="text-sm text-primary font-medium">{{ item.archivo ? 'Archivo Cargado' : 'Subir Certificado' }}
               </div>
@@ -223,8 +232,11 @@
             <label class="block text-sm font-bold text-gray-700 mb-2">Certificado (PDF) <span
                 class="text-red-500">*</span></label>
             <div
-              class="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50 transition-colors cursor-pointer"
-              @click="triggerFilePicker('cap', index)">
+              class="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50 transition-colors cursor-pointer relative"
+              @click.self="triggerFilePicker('cap', index)">
+              <div class="absolute right-2 top-2 z-10">
+                <GoogleDriveUploadBtn @file-selected="(f) => item.archivo = f" />
+              </div>
               <q-icon name="cloud_upload" size="30px" color="primary" class="q-mb-sm" />
               <div class="text-sm text-primary font-medium">{{ item.archivo ? 'Archivo Cargado' : 'Subir Certificado' }}
               </div>
@@ -280,8 +292,11 @@
             <label class="block text-sm font-bold text-gray-700 mb-2">Respaldo (PDF) <span
                 class="text-red-500">*</span></label>
             <div
-              class="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50 transition-colors cursor-pointer"
-              @click="triggerFilePicker('prod', index)">
+              class="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50 transition-colors cursor-pointer relative"
+              @click.self="triggerFilePicker('prod', index)">
+              <div class="absolute right-2 top-2 z-10">
+                <GoogleDriveUploadBtn @file-selected="(f) => item.archivo = f" />
+              </div>
               <q-icon name="cloud_upload" size="30px" color="primary" class="q-mb-sm" />
               <div class="text-sm text-primary font-medium">{{ item.archivo ? 'Archivo Cargado' : 'Subir Documento' }}
               </div>
@@ -332,8 +347,11 @@
             <label class="block text-sm font-bold text-gray-700 mb-2">Respaldo (PDF) <span
                 class="text-red-500">*</span></label>
             <div
-              class="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50 transition-colors cursor-pointer"
-              @click="triggerFilePicker('rec', index)">
+              class="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-blue-50 transition-colors cursor-pointer relative"
+              @click.self="triggerFilePicker('rec', index)">
+              <div class="absolute right-2 top-2 z-10">
+                <GoogleDriveUploadBtn @file-selected="(f) => item.archivo = f" />
+              </div>
               <q-icon name="cloud_upload" size="30px" color="primary" class="q-mb-sm" />
               <div class="text-sm text-primary font-medium">{{ item.archivo ? 'Archivo Cargado' : 'Subir Documento' }}
               </div>
@@ -377,6 +395,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { usePostulacionStore } from 'stores/postulacion-store'
 import { useQuasar } from 'quasar'
+import GoogleDriveUploadBtn from 'src/components/common/GoogleDriveUploadBtn.vue'
 
 const store = usePostulacionStore()
 const $q = useQuasar()
@@ -411,7 +430,7 @@ const unmappedDocuments = computed(() => {
 
 // ---------- HELPERS PARA REGISTROS (Restaurados) ----------
 const currentYear = new Date().getFullYear()
-const agregarFormacion = () => store.agregarRegistro('formaciones', { nivel: 'Licenciatura', titulo_profesion: '', universidad: '', anio_emision: currentYear, archivo: null })
+const agregarFormacion = () => store.agregarRegistro('formaciones', { nivel: 'licenciatura', titulo_profesion: '', universidad: '', anio_emision: currentYear, archivo: null })
 const agregarExperiencia = () => store.agregarRegistro('experiencias', { cargo_desempenado: '', empresa_institucion: '', anio_inicio: '', anio_fin: '', archivo: null })
 const agregarCapacitacion = () => store.agregarRegistro('capacitaciones', { nombre_curso: '', institucion_emisora: '', anio: currentYear, carga_horaria: '', archivo: null })
 const agregarProduccion = () => store.agregarRegistro('producciones', { tipo: 'Libro', titulo: '', anio: currentYear, archivo: null })
@@ -484,7 +503,13 @@ const onRejected = () => $q.notify({ type: 'negative', message: 'Archivo inváli
 // Helpers Docs Genericos
 const docInputRefs = ref({})
 const setDocInputRef = (el, docId) => { if (el) docInputRefs.value[docId] = el }
-const triggerDocumentPicker = (docId) => { const input = docInputRefs.value[docId]; if (input) input.click() }
+const triggerDocumentPicker = (docId) => {
+  const input = docInputRefs.value[docId]
+  if (input) {
+    input.value = ''
+    input.click()
+  }
+}
 const handleDocumentUpload = (event, docId) => {
   const file = event.target.files[0]
   if (!file) return
@@ -493,7 +518,13 @@ const handleDocumentUpload = (event, docId) => {
 }
 
 // Datos estáticos
-const nivelesAcademicos = [{ label: 'Licenciatura', value: 'Licenciatura' }, { label: 'Maestría', value: 'Maestría' }, { label: 'Doctorado', value: 'Doctorado' }, { label: 'Diplomado', value: 'Diplomado' }]
+const nivelesAcademicos = [
+  { label: 'Licenciatura', value: 'licenciatura' },
+  { label: 'Maestría', value: 'maestria' },
+  { label: 'Doctorado', value: 'doctorado' },
+  { label: 'Diplomado', value: 'diplomado' },
+  { label: 'Especialidad', value: 'especialidad' }
+]
 const tiposProduccion = ['Libro', 'Artículo', 'Investigación']
 </script>
 

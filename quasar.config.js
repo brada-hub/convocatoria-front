@@ -3,6 +3,9 @@
 
 import { defineConfig } from '#q-app/wrappers'
 import { fileURLToPath } from 'node:url'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 export default defineConfig((ctx) => {
   return {
@@ -33,6 +36,10 @@ export default defineConfig((ctx) => {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     build: {
+      env: {
+        GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
+        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID
+      },
       target: {
         browser: ['es2022', 'firefox115', 'chrome115', 'safari14'],
         node: 'node20',
@@ -109,7 +116,7 @@ export default defineConfig((ctx) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: ['Notify', 'Dialog'],
+      plugins: ['Notify', 'Dialog', 'Loading'],
     },
 
     // animations: 'all', // --- includes all animations
