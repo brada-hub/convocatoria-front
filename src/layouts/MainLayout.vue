@@ -133,6 +133,7 @@ const adminMenuItems = [
   { id: 'convocatorias', label: 'Convocatorias', icon: 'campaign' },
   { id: 'sedes', label: 'Sedes', icon: 'apartment' },
   { id: 'cargos', label: 'Cargos', icon: 'badge' },
+  { id: 'niveles', label: 'Niveles Acad.', icon: 'school' },
   { id: 'postulaciones', label: 'Postulaciones', icon: 'people_alt' },
   { id: 'usuarios', label: 'Usuarios', icon: 'manage_accounts' },
   { id: 'roles', label: 'Roles', icon: 'security' },

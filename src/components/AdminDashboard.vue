@@ -106,6 +106,11 @@
         <AdminCargos />
       </div>
 
+      <!-- VISTA: NIVELES -->
+      <div v-show="activeTab === 'niveles'">
+        <AdminNiveles />
+      </div>
+
       <!-- VISTA: USUARIOS -->
       <div v-show="activeTab === 'usuarios'">
         <AdminUsuarios />
@@ -353,7 +358,7 @@
                           class="flex items-center gap-3 bg-white p-2 rounded-lg border">
                           <span class="flex-1 text-xs font-medium text-gray-700 truncate">{{
                             getCargoName(id)
-                            }}</span>
+                          }}</span>
                           <q-input v-model.number="tempOferta.vacantes_map[id]" type="number" outlined dense
                             bg-color="white" style="width: 80px" min="1" />
                         </div>
@@ -391,7 +396,7 @@
                         class="hover:bg-gray-50 transition-colors">
                         <td class="p-4 font-medium text-gray-900">{{
                           sedes.find(s => s.id === oferta.sede_id)?.nombre
-                          }}</td>
+                        }}</td>
                         <td class="p-4 text-gray-700">{{cargos.find(c => c.id === oferta.cargo_id)?.nombre}}
                         </td>
                         <td class="p-4 text-center font-mono">
@@ -904,6 +909,7 @@ import { useAuthStore } from 'stores/auth-store'
 import AdminHomeComp from './admin/AdminHomeComp.vue'
 import AdminSedes from './admin/AdminSedes.vue'
 import AdminCargos from './admin/AdminCargos.vue'
+import AdminNiveles from './admin/AdminNiveles.vue'
 import AdminUsuarios from './admin/AdminUsuarios.vue'
 import AdminRoles from './admin/AdminRoles.vue'
 import TiposDocumentoManager from './admin/TiposDocumentoManager.vue'
@@ -926,6 +932,7 @@ const currentSectionTitle = computed(() => {
     convocatorias: 'Convocatorias',
     sedes: 'Sedes y Ubicaciones',
     cargos: 'Catálogo de Cargos',
+    niveles: 'Niveles Académicos',
     postulaciones: 'Gestión de Postulaciones',
     usuarios: 'Gestión de Usuarios',
     roles: 'Gestión de Roles',

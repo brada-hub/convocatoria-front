@@ -395,6 +395,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { usePostulacionStore } from 'stores/postulacion-store'
 import { useQuasar } from 'quasar'
+import { api } from 'boot/axios'
 import GoogleDriveUploadBtn from 'src/components/common/GoogleDriveUploadBtn.vue'
 
 const store = usePostulacionStore()
@@ -430,14 +431,24 @@ const unmappedDocuments = computed(() => {
 
 // ---------- HELPERS PARA REGISTROS (Restaurados) ----------
 const currentYear = new Date().getFullYear()
-const agregarFormacion = () => store.agregarRegistro('formaciones', { nivel: 'licenciatura', titulo_profesion: '', universidad: '', anio_emision: currentYear, archivo: null })
+const agregarFormacion = () => store.agregarRegistro('formaciones', { nivel: '', titulo_profesion: '', universidad: '', anio_emision: currentYear, archivo: null })
 const agregarExperiencia = () => store.agregarRegistro('experiencias', { cargo_desempenado: '', empresa_institucion: '', anio_inicio: '', anio_fin: '', archivo: null })
 const agregarCapacitacion = () => store.agregarRegistro('capacitaciones', { nombre_curso: '', institucion_emisora: '', anio: currentYear, carga_horaria: '', archivo: null })
 const agregarProduccion = () => store.agregarRegistro('producciones', { tipo: 'Libro', titulo: '', anio: currentYear, archivo: null })
 const agregarReconocimiento = () => store.agregarRegistro('reconocimientos', { tipo_reconocimiento: '', titulo: '', otorgado_por: '', anio: currentYear, archivo: null })
 
+// Dynamic Catalogs
+const nivelesAcademicos = ref([])
+
 // Auto-populate 1 empty item ONLY if section is required and empty
-onMounted(() => {
+onMounted(async () => {
+  try {
+    const { data } = await api.get('/catalogos/niveles-academicos')
+    nivelesAcademicos.value = data
+  } catch (error) {
+    console.error('Error al cargar catálogos', error)
+  }
+
   if (isSectionRequired('formacion') && store.formaciones.length === 0) agregarFormacion()
   if (isSectionRequired('experiencia') && store.experiencias.length === 0) agregarExperiencia()
   if (isSectionRequired('capacitacion') && store.capacitaciones.length === 0) agregarCapacitacion()
@@ -518,13 +529,7 @@ const handleDocumentUpload = (event, docId) => {
 }
 
 // Datos estáticos
-const nivelesAcademicos = [
-  { label: 'Licenciatura', value: 'licenciatura' },
-  { label: 'Maestría', value: 'maestria' },
-  { label: 'Doctorado', value: 'doctorado' },
-  { label: 'Diplomado', value: 'diplomado' },
-  { label: 'Especialidad', value: 'especialidad' }
-]
+
 const tiposProduccion = ['Libro', 'Artículo', 'Investigación']
 </script>
 
