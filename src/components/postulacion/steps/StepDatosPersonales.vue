@@ -118,7 +118,7 @@ const existingPhotoUrl = computed(() => {
     if (store.esPostulanteExistente && typeof store.postulante.foto_perfil === 'string') {
         const storageBaseUrl = process.env.PROD
             ? 'https://api.sipo.xpertiaplus.com/storage/'
-            : 'http://localhost:8000/storage/'
+            : 'http://localhost:8081/storage/'
         return storageBaseUrl + store.postulante.foto_perfil
     }
     return null

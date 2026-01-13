@@ -62,7 +62,9 @@
               <q-input v-model="form.apellidos" outlined dense label="Apellidos *" :rules="[val => !!val || 'Requerido']" />
           </div>
 
-          <q-input v-model="form.ci" outlined dense label="Cédula de Identidad (Usuario)*" :rules="[val => !!val || 'Requerido']" hint="Será el usuario y contraseña inicial" />
+          <q-input v-model="form.ci" outlined dense label="Cédula de Identidad (Contraseña inicial)*" :rules="[val => !!val || 'Requerido']" hint="Se usará como contraseña inicial" />
+
+          <q-input v-model="form.email" outlined dense label="Correo Electrónico (Usuario)*" placeholder="usuario@ejemplo.com" type="email" :rules="[val => !!val || 'Requerido']" />
 
           <q-select
             v-model="form.rol_id"
@@ -80,7 +82,7 @@
            <div v-if="!editingUser" class="bg-blue-50 p-3 rounded-lg text-xs text-blue-800 flex items-start gap-2">
               <q-icon name="info" size="16px" class="mt-0.5" />
               <div>
-                  <strong>Nota:</strong> La contraseña inicial será el número de Cédula de Identidad. El usuario deberá cambiarla en su primer inicio de sesión.
+                  <strong>Nota:</strong> El <strong>Correo Electrónico</strong> será el usuario de acceso. La contraseña inicial será el número de <strong>CI</strong>. El usuario deberá cambiarla en su primer inicio de sesión.
               </div>
           </div>
 
@@ -108,12 +110,13 @@ const loading = ref(false)
 const saving = ref(false)
 const showDialog = ref(false)
 const editingUser = ref(null)
-const form = ref({ nombres: '', apellidos: '', ci: '', rol_id: null })
+const form = ref({ nombres: '', apellidos: '', ci: '', email: '', rol_id: null })
 
 const columns = [
   { name: 'nombres', label: 'Nombres', field: 'nombres', align: 'left', sortable: true },
   { name: 'apellidos', label: 'Apellidos', field: 'apellidos', align: 'left', sortable: true },
-  { name: 'ci', label: 'CI (Usuario)', field: 'ci', align: 'left', sortable: true },
+  { name: 'email', label: 'Correo (Usuario)', field: 'email', align: 'left', sortable: true },
+  { name: 'ci', label: 'CI (Password Inicial)', field: 'ci', align: 'left', sortable: true },
   { name: 'rol', label: 'Rol', field: 'rol', align: 'left' },
   { name: 'activo', label: 'Estado', field: 'activo', align: 'center' },
   { name: 'acciones', label: '', field: 'acciones', align: 'center' },
@@ -141,7 +144,7 @@ const loadRoles = async () => {
 
 const openDialog = () => {
   editingUser.value = null
-  form.value = { nombres: '', apellidos: '', ci: '', rol_id: null }
+  form.value = { nombres: '', apellidos: '', ci: '', email: '', rol_id: null }
   showDialog.value = true
 }
 
@@ -151,13 +154,14 @@ const editUser = (item) => {
     nombres: item.nombres,
     apellidos: item.apellidos,
     ci: item.ci,
+    email: item.email,
     rol_id: item.rol_id,
   }
   showDialog.value = true
 }
 
 const saveUser = async () => {
-  if (!form.value.nombres || !form.value.apellidos || !form.value.ci || !form.value.rol_id) return
+  if (!form.value.nombres || !form.value.apellidos || !form.value.ci || !form.value.email || !form.value.rol_id) return
 
   saving.value = true
   try {

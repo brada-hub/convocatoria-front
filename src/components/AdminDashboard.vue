@@ -112,12 +112,12 @@
       </div>
 
       <!-- VISTA: USUARIOS -->
-      <div v-show="activeTab === 'usuarios'">
+      <div v-if="activeTab === 'usuarios' && isAdmin">
         <AdminUsuarios />
       </div>
 
       <!-- VISTA: ROLES -->
-      <div v-show="activeTab === 'roles'">
+      <div v-if="activeTab === 'roles' && isAdmin">
         <AdminRoles />
       </div>
 
@@ -680,15 +680,24 @@
               <p class="text-sm text-gray-500">Expediente Digital • CI: {{ selectedPostulante?.ci }}</p>
             </div>
           </div>
-          <button @click="showExpedienteDialog = false" class="p-2 hover:bg-gray-100 rounded-full"><q-icon name="close"
-              size="24px" /></button>
+          <div class="flex items-center gap-2">
+            <!-- Botón Descargar Expediente Completo -->
+            <button @click="descargarExpedienteCompleto" :disabled="downloadingExpediente"
+              class="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+              <q-spinner v-if="downloadingExpediente" size="16px" color="white" />
+              <q-icon v-else name="download" size="18px" />
+              <span class="hidden sm:inline">Descargar Expediente</span>
+            </button>
+            <button @click="showExpedienteDialog = false" class="p-2 hover:bg-gray-100 rounded-full"><q-icon name="close"
+                size="24px" /></button>
+          </div>
         </div>
 
         <!-- Layout dividido: Datos a la izquierda, Preview a la derecha -->
         <div class="flex-1 flex overflow-hidden">
-          <!-- Panel Izquierdo: Tablas de datos -->
-          <div class="w-1/2 overflow-auto p-6 border-r border-gray-200">
-            <div class="space-y-6">
+          <!-- Panel Izquierdo: Tablas de datos - AHORA CON SCROLL -->
+          <div class="w-full md:w-1/2 overflow-y-auto p-6 border-r border-gray-200" style="max-height: calc(100vh - 88px);">
+            <div class="space-y-6 pb-6">
               <!-- Formación Académica -->
               <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                 <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="school"
@@ -896,6 +905,48 @@
       </q-card>
     </q-dialog>
 
+    <!-- Dialog Quick Create Sede -->
+    <q-dialog v-model="showQuickSede" persistent>
+      <q-card style="width: 400px; border-radius: 16px;">
+        <q-card-section class="bg-indigo-600 text-white flex justify-between items-center">
+          <div class="text-h6">Crear Nueva Sede</div>
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section class="q-pa-md space-y-4">
+          <q-input v-model="quickSedeForm.nombre" label="Nombre de la Sede" outlined dense autofocus
+            placeholder="Ej. Cochabamba - Central" />
+          <q-input v-model="quickSedeForm.direccion" label="Dirección / Ubicación" outlined dense type="textarea"
+            rows="2" />
+        </q-card-section>
+        <q-card-actions align="right" class="q-pa-md bg-gray-50">
+          <q-btn flat label="Cancelar" color="gray" v-close-popup />
+          <q-btn label="Guardar Sede" color="indigo" :loading="saving" @click="saveQuickSede" unelevated
+            class="rounded-lg" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Dialog Quick Create Cargo -->
+    <q-dialog v-model="showQuickCargo" persistent>
+      <q-card style="width: 400px; border-radius: 16px;">
+        <q-card-section class="bg-indigo-600 text-white flex justify-between items-center">
+          <div class="text-h6">Crear Nuevo Cargo</div>
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section class="q-pa-md space-y-4">
+          <q-input v-model="quickCargoForm.nombre" label="Nombre del Cargo" outlined dense autofocus
+            placeholder="Ej. Analista de Sistemas" />
+          <q-input v-model="quickCargoForm.descripcion" label="Descripción del Cargo" outlined dense type="textarea"
+            rows="2" />
+        </q-card-section>
+        <q-card-actions align="right" class="q-pa-md bg-gray-50">
+          <q-btn flat label="Cancelar" color="gray" v-close-popup />
+          <q-btn label="Guardar Cargo" color="indigo" :loading="saving" @click="saveQuickCargo" unelevated
+            class="rounded-lg" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
   </div>
 </template>
 
@@ -914,6 +965,7 @@ import AdminUsuarios from './admin/AdminUsuarios.vue'
 import AdminRoles from './admin/AdminRoles.vue'
 import TiposDocumentoManager from './admin/TiposDocumentoManager.vue'
 import ReportsDashboard from './admin/ReportsDashboard.vue'
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 
 const $q = useQuasar()
 const route = useRoute()
@@ -978,6 +1030,7 @@ const showOfertasDialog = ref(false)
 const showExpedienteDialog = ref(false)
 const showShareDialog = ref(false)
 const showPhotoDialog = ref(false)
+const downloadingExpediente = ref(false)
 const qrCodeUrl = ref('')
 const publicLink = ref('')
 
@@ -987,6 +1040,11 @@ const nuevaOferta = ref({ sede_id: null, cargos_ids: [], vacantes: 1 }) // vacan
 const tempOferta = ref({ sede_id: null, cargos_ids: [], vacantes_map: {} }) // vacantes_map para el stepper
 
 const step = ref(1)
+
+const isAdmin = computed(() => {
+  const rol = authStore.currentUser?.rol?.nombre?.toLowerCase() || ''
+  return rol === 'administrador' || rol === 'super admin'
+})
 
 // Inicializar mapa de vacantes cuando cambian los cargos seleccionados
 watch(() => tempOferta.value.cargos_ids, (newVal) => {
@@ -1020,6 +1078,49 @@ const ofertasConvocatoria = ref([])
 // Quick Create Forms (Used in Stepper)
 const showQuickSede = ref(false)
 const showQuickCargo = ref(false)
+const quickSedeForm = ref({ nombre: '', direccion: '' })
+const quickCargoForm = ref({ nombre: '', descripcion: '' })
+
+const saveQuickSede = async () => {
+  try {
+    saving.value = true
+    const { data } = await api.post('/admin/sedes', quickSedeForm.value)
+    const createdSede = data.sede
+    sedes.value.push(createdSede)
+    tempOferta.value.sede_id = createdSede.id // Auto-select
+    nuevaOferta.value.sede_id = createdSede.id // Auto-select for batch add dialog too
+    showQuickSede.value = false
+    quickSedeForm.value = { nombre: '', direccion: '' }
+    $q.notify({ type: 'positive', message: 'Sede creada exitosamente' })
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al crear sede' })
+  } finally {
+    saving.value = false
+  }
+}
+
+const saveQuickCargo = async () => {
+  try {
+    saving.value = true
+    const { data } = await api.post('/admin/cargos', quickCargoForm.value)
+    const createdCargo = data.cargo
+    cargos.value.push(createdCargo)
+    // Para multiselect, agregamos el ID
+    if (!tempOferta.value.cargos_ids.includes(createdCargo.id)) {
+      tempOferta.value.cargos_ids.push(createdCargo.id)
+    }
+    if (!nuevaOferta.value.cargos_ids.includes(createdCargo.id)) {
+      nuevaOferta.value.cargos_ids.push(createdCargo.id)
+    }
+    showQuickCargo.value = false
+    quickCargoForm.value = { nombre: '', descripcion: '' }
+    $q.notify({ type: 'positive', message: 'Cargo creado exitosamente' })
+  } catch {
+    $q.notify({ type: 'negative', message: 'Error al crear cargo' })
+  } finally {
+    saving.value = false
+  }
+}
 
 // Filtros Postulaciones
 const filtroConvocatoria = ref(null)
@@ -1041,6 +1142,8 @@ const convocatoriasColumns = [
 
 const postulacionesColumns = [
   { name: 'postulante', label: 'Datos Postulante', field: 'postulante', align: 'left' },
+  { name: 'convocatoria', label: 'Convocatoria', field: row => row.oferta?.convocatoria?.titulo, align: 'left' },
+  { name: 'sede', label: 'Sede', field: row => row.oferta?.sede?.nombre, align: 'left' },
   { name: 'oferta', label: 'Cargo', field: row => row.oferta?.cargo?.nombre, align: 'left' },
   { name: 'fecha', label: 'Fecha', field: row => row.created_at?.split('T')[0], align: 'center' },
   { name: 'estado', label: 'Estado', field: 'estado', align: 'center' },
@@ -1072,7 +1175,7 @@ const abrirPDF = (rutaPdf) => {
   if (!rutaPdf) return
   const baseUrl = process.env.PROD
     ? 'https://api.sipo.xpertiaplus.com/storage/'
-    : 'http://localhost:8000/storage/'
+    : 'http://localhost:8081/storage/'
   window.open(baseUrl + rutaPdf, '_blank')
 }
 
@@ -1085,7 +1188,7 @@ const previewPDF = (rutaPdf, nombre) => {
   if (!rutaPdf) return
   const baseUrl = process.env.PROD
     ? 'https://api.sipo.xpertiaplus.com/storage/'
-    : 'http://localhost:8000/storage/'
+    : 'http://localhost:8081/storage/'
   previewPdfUrl.value = baseUrl + rutaPdf
   previewPdfName.value = nombre || 'Documento'
   currentPdfPath.value = rutaPdf
@@ -1095,6 +1198,291 @@ const closePreview = () => {
   previewPdfUrl.value = ''
   previewPdfName.value = ''
   currentPdfPath.value = ''
+}
+
+// Descargar expediente completo generando un PDF unificado en el cliente
+// Descargar expediente completo generando un PDF unificado en el cliente
+const descargarExpedienteCompleto = async () => {
+  if (!selectedPostulante.value?.id) {
+    $q.notify({ type: 'warning', message: 'No hay postulante seleccionado' })
+    return
+  }
+
+  downloadingExpediente.value = true
+  try {
+    // 1. Obtener datos completos del expediente
+    const { data: postulante } = await api.get(`/admin/postulantes/${selectedPostulante.value.id}/expediente`)
+
+    // 2. Crear documento PDF
+    const pdfDoc = await PDFDocument.create()
+    const timesRomanFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    const timesBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    const timesItalicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
+
+    // Configuración de página
+    const pageSize = [595.28, 841.89] // A4
+    let page = pdfDoc.addPage(pageSize)
+    const { width, height } = page.getSize()
+    const margin = 50
+    let y = height - margin
+
+    // Helpers de diseño
+    const drawHeader = () => {
+      // Franja morada de cabecera
+      page.drawRectangle({
+        x: 0,
+        y: height - 100,
+        width: width,
+        height: 100,
+        color: rgb(0.42, 0.13, 0.66),
+      })
+
+      page.drawText('EXPEDIENTE DIGITAL DE POSTULACIÓN', {
+        x: margin,
+        y: height - 60,
+        size: 20,
+        font: timesBoldFont,
+        color: rgb(1, 1, 1),
+      })
+
+      page.drawText('Sistema de Selección y Contratación', {
+        x: margin,
+        y: height - 80,
+        size: 10,
+        font: timesRomanFont,
+        color: rgb(0.9, 0.9, 0.9),
+      })
+      y = height - 130
+    }
+
+    const checkPage = (neededHeight) => {
+      if (y - neededHeight < margin) {
+        page = pdfDoc.addPage(pageSize)
+        y = height - 60
+        return true
+      }
+      return false
+    }
+
+    const drawSectionTitle = (text) => {
+      checkPage(40)
+      y -= 10
+      page.drawRectangle({
+        x: margin,
+        y: y - 5,
+        width: width - (margin * 2),
+        height: 25,
+        color: rgb(0.95, 0.95, 0.98),
+      })
+      page.drawLine({
+        start: { x: margin, y: y - 5 },
+        end: { x: margin, y: y + 20 },
+        thickness: 3,
+        color: rgb(0.42, 0.13, 0.66),
+      })
+      page.drawText(text.toUpperCase(), {
+        x: margin + 10,
+        y: y + 2,
+        size: 13,
+        font: timesBoldFont,
+        color: rgb(0.2, 0.2, 0.2),
+      })
+      y -= 35
+    }
+
+    const drawLabelValue = (label, value) => {
+      checkPage(20)
+      page.drawText(`${label}:`, {
+        x: margin,
+        y,
+        size: 10,
+        font: timesBoldFont,
+        color: rgb(0.4, 0.4, 0.4),
+      })
+      page.drawText(String(value || 'No registrado'), {
+        x: margin + 100,
+        y,
+        size: 11,
+        font: timesRomanFont,
+        color: rgb(0, 0, 0),
+      })
+      y -= 18
+    }
+
+    // --- CONSTRUIR CONTENIDO ---
+    drawHeader()
+
+    // Datos Personales
+    drawSectionTitle('Datos del Postulante')
+    drawLabelValue('Nombre Completo', `${postulante.nombres} ${postulante.apellidos}`)
+    drawLabelValue('Documento CI', postulante.ci)
+    drawLabelValue('Correo Electrónico', postulante.email)
+    drawLabelValue('Teléfono/Celular', postulante.celular)
+    drawLabelValue('Dirección', postulante.direccion)
+    y -= 10
+
+    // Formación
+    if (postulante.formaciones?.length > 0) {
+      drawSectionTitle('Formación Académica')
+      postulante.formaciones.forEach(f => {
+        checkPage(40)
+        page.drawText(f.titulo_profesion || 'Título no especificado', {
+          x: margin,
+          y,
+          size: 11,
+          font: timesBoldFont,
+        })
+        y -= 14
+        page.drawText(`${f.nivel} • ${f.universidad} (${f.anio_emision})`, {
+          x: margin,
+          y,
+          size: 10,
+          font: timesRomanFont,
+          color: rgb(0.3, 0.3, 0.3),
+        })
+        y -= 25
+      })
+    }
+
+    // Experiencia
+    if (postulante.experiencias?.length > 0) {
+      drawSectionTitle('Trayectoria Laboral')
+      postulante.experiencias.forEach(e => {
+        checkPage(40)
+        page.drawText(e.cargo_desempenado || 'Cargo no especificado', {
+          x: margin,
+          y,
+          size: 11,
+          font: timesBoldFont,
+        })
+        y -= 14
+        page.drawText(`${e.empresa_institucion} (${e.anio_inicio} - ${e.anio_fin || 'Actualidad'})`, {
+          x: margin,
+          y,
+          size: 10,
+          font: timesRomanFont,
+          color: rgb(0.3, 0.3, 0.3),
+        })
+        y -= 25
+      })
+    }
+
+    // Capacitaciones
+    if (postulante.capacitaciones?.length > 0) {
+        drawSectionTitle('Cursos y Capacitaciones')
+        postulante.capacitaciones.forEach(c => {
+          checkPage(30)
+          page.drawText(c.nombre_curso, { x: margin, y, size: 10, font: timesBoldFont })
+          y -= 12
+          page.drawText(`${c.institucion} • ${c.horas_academicas} hrs • ${c.anio}`, { x: margin, y, size: 9, font: timesRomanFont, color: rgb(0.4, 0.4, 0.4) })
+          y -= 18
+        })
+    }
+
+    // --- ADJUNTAR DOCUMENTOS ---
+
+    const attachPdf = async (url, titulo, categoria) => {
+      try {
+        if (!url) return
+
+        const response = await api.get('/documento-proxy', {
+          params: { path: url },
+          responseType: 'arraybuffer'
+        })
+        const pdfBytes = response.data
+        const srcDoc = await PDFDocument.load(pdfBytes)
+
+        // PÁGINA DE SEPARADOR ELEGANTE
+        const sepPage = pdfDoc.addPage(pageSize)
+        const sW = sepPage.getWidth()
+        const sH = sepPage.getHeight()
+
+        // Marco decorativo
+        sepPage.drawRectangle({
+          x: 40, y: 40, width: sW - 80, height: sH - 80,
+          borderColor: rgb(0.42, 0.13, 0.66), borderWidth: 1,
+        })
+
+        sepPage.drawText('DOCUMENTO ADJUNTO', {
+          x: sW / 2 - 80, y: sH - 150, size: 14, font: timesBoldFont, color: rgb(0.4, 0.4, 0.4),
+        })
+
+        sepPage.drawText(categoria.toUpperCase(), {
+          x: sW / 2 - 50, y: sH / 2 + 50, size: 12, font: timesItalicFont, color: rgb(0.6, 0.6, 0.6),
+        })
+
+        sepPage.drawText(titulo, {
+          x: 100, y: sH / 2, size: 22, font: timesBoldFont, color: rgb(0.2, 0.2, 0.2),
+          maxWidth: sW - 200, lineHeight: 28,
+        })
+
+        sepPage.drawLine({
+          start: { x: sW / 2 - 50, y: sH / 2 - 20 }, end: { x: sW / 2 + 50, y: sH / 2 - 20 },
+          thickness: 3, color: rgb(0.42, 0.13, 0.66),
+        })
+
+        // Copiar páginas con escalado automático para ajustar a A4
+        const copiedPages = await pdfDoc.copyPages(srcDoc, srcDoc.getPageIndices())
+        copiedPages.forEach((cp) => {
+          const { width: cpW, height: cpH } = cp.getSize()
+          // Si es más grande que A4, escalamos
+          if (cpW > pageSize[0] || cpH > pageSize[1]) {
+             const scale = Math.min(pageSize[0] / cpW, pageSize[1] / cpH)
+             cp.scale(scale, scale)
+          }
+          pdfDoc.addPage(cp)
+        })
+
+      } catch (e) {
+        console.error(`Error adjuntando ${titulo}:`, e)
+        checkPage(20)
+        page.drawText(`[ERROR: No se pudo cargar el documento: ${titulo}]`, {
+           x: margin, y, size: 10, font: timesBoldFont, color: rgb(0.8, 0, 0)
+        })
+        y -= 15
+      }
+    }
+
+    const attachments = [
+      ...(postulante.formaciones || []).map(i => ({ url: i.archivo_pdf, title: i.titulo_profesion, cat: 'Formación Académica' })),
+      ...(postulante.experiencias || []).map(i => ({ url: i.archivo_pdf, title: i.cargo_desempenado, cat: 'Experiencia Laboral' })),
+      ...(postulante.capacitaciones || []).map(i => ({ url: i.archivo_pdf, title: i.nombre_curso, cat: 'Capacitación' })),
+      ...(postulante.producciones || []).map(i => ({ url: i.archivo_pdf, title: i.titulo, cat: 'Producción Intelectual' })),
+      ...(postulante.reconocimientos || []).map(i => ({ url: i.archivo_pdf, title: i.titulo || i.tipo_reconocimiento, cat: 'Reconocimiento' })),
+      ...(postulante.documentos || []).map(i => ({ url: i.archivo_pdf, title: i.tipo_documento?.nombre, cat: 'Documentación General' })),
+    ]
+
+    for (const attach of attachments) {
+      if (attach.url) {
+        await attachPdf(attach.url, attach.title, attach.cat)
+      }
+    }
+
+    // 3. Guardar y descargar
+    const pdfBytes = await pdfDoc.save()
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+    const link = document.createElement('a')
+    link.href = window.URL.createObjectURL(blob)
+    const nombreArchivo = `Expediente_Completo_${postulante.ci}.pdf`
+    link.download = nombreArchivo
+    link.click()
+
+    $q.notify({
+      type: 'positive',
+      message: 'Expediente consolidado descargado existosamente',
+      icon: 'check_circle'
+    })
+
+  } catch (error) {
+    console.error('Error generando expediente:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Error al generar el expediente PDF',
+      caption: error.message || 'Intente nuevamente'
+    })
+  } finally {
+    downloadingExpediente.value = false
+  }
 }
 
 // Login logic removed - handled by router and LoginPage
@@ -1123,7 +1511,7 @@ const getStorageUrl = (path) => {
   if (!path) return ''
   const baseUrl = import.meta.env.PROD
     ? 'https://api.sipo.xpertiaplus.com/storage/'
-    : 'http://localhost:8000/storage/'
+    : 'http://localhost:8081/storage/'
   return baseUrl + path
 }
 

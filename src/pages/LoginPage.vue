@@ -22,8 +22,8 @@
                         <div>
                             <label
                                 class="text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1 block">Usuario
-                                / CI</label>
-                            <q-input v-model="email" outlined dense placeholder="Ingrese su usuario o CI"
+                                / Correo</label>
+                            <q-input v-model="email" outlined dense placeholder="Ingrese su usuario o correo"
                                 bg-color="white" :rules="[val => !!val || 'Requerido']">
                                 <template v-slot:prepend>
                                     <q-icon name="person_outline" color="purple-8" size="20px" />

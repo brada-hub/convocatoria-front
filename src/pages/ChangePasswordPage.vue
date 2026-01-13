@@ -23,11 +23,15 @@
                         <div>
                             <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1 block">Nueva
                                 Contraseña</label>
-                            <q-input v-model="password" type="password" outlined dense placeholder="Mínimo 6 caracteres"
+                            <q-input v-model="password" :type="showPassword ? 'text' : 'password'" outlined dense placeholder="Mínimo 6 caracteres"
                                 bg-color="white"
                                 :rules="[val => !!val || 'Requerido', val => val.length >= 6 || 'Mínimo 6 caracteres']">
                                 <template v-slot:prepend>
                                     <q-icon name="lock" color="purple-8" size="20px" />
+                                </template>
+                                <template v-slot:append>
+                                    <q-icon :name="showPassword ? 'visibility' : 'visibility_off'"
+                                        class="cursor-pointer" color="gray" @click="showPassword = !showPassword" />
                                 </template>
                             </q-input>
                         </div>
@@ -36,13 +40,17 @@
                             <label
                                 class="text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1 block">Confirmar
                                 Contraseña</label>
-                            <q-input v-model="passwordConfirm" type="password" outlined dense
+                            <q-input v-model="passwordConfirm" :type="showPasswordConfirm ? 'text' : 'password'" outlined dense
                                 placeholder="Repita la contraseña" bg-color="white" :rules="[
                                     val => !!val || 'Requerido',
                                     val => val === password || 'Las contraseñas no coinciden'
                                 ]">
                                 <template v-slot:prepend>
                                     <q-icon name="lock_clock" color="purple-8" size="20px" />
+                                </template>
+                                <template v-slot:append>
+                                    <q-icon :name="showPasswordConfirm ? 'visibility' : 'visibility_off'"
+                                        class="cursor-pointer" color="gray" @click="showPasswordConfirm = !showPasswordConfirm" />
                                 </template>
                             </q-input>
                         </div>
@@ -78,6 +86,8 @@ const authStore = useAuthStore()
 
 const password = ref('')
 const passwordConfirm = ref('')
+const showPassword = ref(false)
+const showPasswordConfirm = ref(false)
 const loading = ref(false)
 
 const handleChangePassword = async () => {

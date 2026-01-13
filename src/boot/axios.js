@@ -10,7 +10,7 @@ import axios from 'axios'
 const api = axios.create({
   baseURL: process.env.PROD
     ? 'https://api.sipo.xpertiaplus.com/api'
-    : 'http://localhost:8000/api',
+    : 'http://localhost:8081/api',
   withCredentials: true,
   withXSRFToken: true
 })

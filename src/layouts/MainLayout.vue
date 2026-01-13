@@ -128,16 +128,25 @@ const toggleLeftDrawer = () => {
 
 const today = new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
 
-const adminMenuItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { id: 'convocatorias', label: 'Convocatorias', icon: 'campaign' },
-  { id: 'sedes', label: 'Sedes', icon: 'apartment' },
-  { id: 'cargos', label: 'Cargos', icon: 'badge' },
-  { id: 'niveles', label: 'Niveles Acad.', icon: 'school' },
-  { id: 'postulaciones', label: 'Postulaciones', icon: 'people_alt' },
-  { id: 'usuarios', label: 'Usuarios', icon: 'manage_accounts' },
-  { id: 'roles', label: 'Roles', icon: 'security' },
-]
+const adminMenuItems = computed(() => {
+  const items = [
+    { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
+    { id: 'convocatorias', label: 'Convocatorias', icon: 'campaign' },
+    { id: 'sedes', label: 'Sedes', icon: 'apartment' },
+    { id: 'cargos', label: 'Cargos', icon: 'badge' },
+    { id: 'niveles', label: 'Niveles Acad.', icon: 'school' },
+    { id: 'postulaciones', label: 'Postulaciones', icon: 'people_alt' },
+  ]
+
+  // Solo Administradores ven Usuarios y Roles
+  const rolName = authStore.currentUser?.rol?.nombre?.toLowerCase() || ''
+  if (rolName === 'administrador' || rolName === 'super admin') {
+    items.push({ id: 'usuarios', label: 'Usuarios', icon: 'manage_accounts' })
+    items.push({ id: 'roles', label: 'Roles', icon: 'security' })
+  }
+
+  return items
+})
 
 const setAdminSection = (sectionId) => {
   router.push({ path: '/admin', query: { section: sectionId } })

@@ -76,7 +76,7 @@ watch(() => props.file, async (newFile) => {
                 // Es una ruta relativa del storage
                 const baseUrl = process.env.PROD
                     ? 'https://api.sipo.xpertiaplus.com'
-                    : 'http://localhost:8000'
+                    : 'http://localhost:8081'
                 pdfUrl.value = `${baseUrl}/storage/${newFile}`
             }
         }
