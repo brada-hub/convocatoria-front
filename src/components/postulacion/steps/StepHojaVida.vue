@@ -42,41 +42,7 @@
       </div>
     </q-banner>
 
-    <!-- SECCIÓN 0: Otros Documentos (No mapeados a secciones específicas) -->
-    <div v-if="unmappedDocuments.length > 0" class="section-container q-mb-xxl">
-      <div class="flex items-center gap-3 q-mb-lg pb-4 border-b border-gray-200">
-        <div class="bg-orange-100 p-2 rounded-lg text-orange"><q-icon name="folder_special" size="24px" /></div>
-        <div class="text-lg font-bold text-gray-800">Documentos Generales</div>
-      </div>
-      <div class="row q-col-gutter-lg">
-        <div v-for="doc in unmappedDocuments" :key="doc.id" class="col-12 col-md-4">
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 h-full">
-            <label class="block text-sm font-bold text-gray-700 mb-3">
-              {{ doc.nombre }} <span v-if="doc.obligatorio" class="text-red-500">*</span>
-            </label>
-            <div
-              class="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center bg-gray-50 hover:bg-orange-50 transition-colors cursor-pointer relative"
-              :class="store.documentos[doc.id] ? 'border-green-400 bg-green-50' : 'border-gray-300'"
-              @click.self="triggerDocumentPicker(doc.id)">
-              <div class="absolute right-2 top-2 z-10">
-                <GoogleDriveUploadBtn @file-selected="(f) => store.setDocumento(doc.id, f)" />
-              </div>
-              <q-icon :name="store.documentos[doc.id] ? 'check_circle' : 'cloud_upload'" size="36px"
-                :color="store.documentos[doc.id] ? 'positive' : 'orange'" class="q-mb-sm" />
-              <div class="text-sm font-medium text-center"
-                :class="store.documentos[doc.id] ? 'text-positive' : 'text-orange'">
-                {{ store.documentos[doc.id] ? 'Archivo cargado' : 'Click para subir' }}
-              </div>
-              <div class="text-xs text-gray-400 mt-1 max-w-full truncate">
-                {{ store.documentos[doc.id]?.name || 'PDF - Max 2MB' }}
-              </div>
-            </div>
-            <input type="file" :ref="el => setDocInputRef(el, doc.id)" accept=".pdf" class="hidden"
-              @change="(e) => handleDocumentUpload(e, doc.id)" />
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- NOTA: Los documentos generales (CV, Carta, CI) ahora se suben en el paso "Datos Personales" -->
 
     <!-- SECCIÓN 1: Formación Académica -->
     <div v-if="isSectionRequired('formacion')" class="section-container q-mb-xxl">
@@ -413,6 +379,8 @@ const sectionKeywords = {
 }
 
 const isSectionRequired = (sectionKey) => {
+  // Mantenemos la lógica de mostrar secciones si hay palabras clave,
+  // pero ya no quitamos los documentos de la lista de arriba.
   return store.documentosRequeridos.some(doc =>
     sectionKeywords[sectionKey].some(keyword =>
       doc.nombre.toLowerCase().includes(keyword.toLowerCase())
@@ -421,12 +389,11 @@ const isSectionRequired = (sectionKey) => {
 }
 
 // Documentos que NO calzan en ninguna sección (Generic Grid)
+// Documentos que NO calzan en ninguna sección (Generic Grid) -> AHORA SON TODOS
 const unmappedDocuments = computed(() => {
-  return store.documentosRequeridos.filter(doc => {
-    // Si NO matchea ninguna keyword de ninguna sección, es "General"
-    const allKeywords = Object.values(sectionKeywords).flat()
-    return !allKeywords.some(k => doc.nombre.toLowerCase().includes(k.toLowerCase()))
-  })
+  // Retornamos TODOS los documentos para que aparezcan como cajitas de subida obligatoria/general.
+  // Las secciones de abajo (Formación, Experiencia) servirán para detallar la información.
+  return store.documentosRequeridos
 })
 
 // ---------- HELPERS PARA REGISTROS (Restaurados) ----------
@@ -511,22 +478,7 @@ const setFileRef = (el, type, index) => { if (el) fileInputRefs.value[`${type}_$
 const triggerFilePicker = (type, index) => { const ref = fileInputRefs.value[`${type}_${index}`]; if (ref) ref.pickFiles() }
 const onRejected = () => $q.notify({ type: 'negative', message: 'Archivo inválido o muy grande.' })
 
-// Helpers Docs Genericos
-const docInputRefs = ref({})
-const setDocInputRef = (el, docId) => { if (el) docInputRefs.value[docId] = el }
-const triggerDocumentPicker = (docId) => {
-  const input = docInputRefs.value[docId]
-  if (input) {
-    input.value = ''
-    input.click()
-  }
-}
-const handleDocumentUpload = (event, docId) => {
-  const file = event.target.files[0]
-  if (!file) return
-  if (file.size > 2097152) { $q.notify({ type: 'negative', message: 'Max 2MB' }); return }
-  store.setDocumento(docId, file)
-}
+// Helpers Docs Genericos - REMOVIDO (Ahora en StepDatosPersonales)
 
 // Datos estáticos
 

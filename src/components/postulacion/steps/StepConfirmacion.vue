@@ -58,7 +58,7 @@
     <div class="flex flex-col items-center gap-4">
       <q-btn class="btn-primary q-px-xl" size="lg" icon="send" label="Enviar Postulación" :loading="store.loading"
         @click="enviarPostulacion" no-caps />
-      <q-btn flat color="grey-7" label="Regresar a Hoja de Vida" icon="arrow_back" @click="emit('prev')" no-caps />
+      <q-btn flat color="grey-7" label="Regresar a Expediente" icon="arrow_back" @click="emit('prev')" no-caps />
     </div>
   </div>
 </template>

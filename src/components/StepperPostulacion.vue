@@ -14,8 +14,8 @@
           <StepDatosPersonales @next="store.step++" @prev="store.step--" />
         </q-step>
 
-        <!-- PASO 3: Hoja de Vida -->
-        <q-step :name="3" title="Hoja de Vida" icon="description" :done="store.step > 3" class="q-pb-xl">
+        <!-- PASO 3: Expediente Académico -->
+        <q-step :name="3" title="Expediente Académico" icon="description" :done="store.step > 3" class="q-pb-xl">
           <StepHojaVida @next="store.step++" @prev="store.step--" />
         </q-step>
 

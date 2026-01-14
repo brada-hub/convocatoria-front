@@ -132,6 +132,7 @@ const adminMenuItems = computed(() => {
   const items = [
     { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
     { id: 'convocatorias', label: 'Convocatorias', icon: 'campaign' },
+    { id: 'gestion-convocatorias', label: 'Ver Postulantes', icon: 'groups' },
     { id: 'sedes', label: 'Sedes', icon: 'apartment' },
     { id: 'cargos', label: 'Cargos', icon: 'badge' },
     { id: 'niveles', label: 'Niveles Acad.', icon: 'school' },

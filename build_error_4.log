@@ -1,0 +1,96 @@
+
+ .d88888b.
+d88P" "Y88b
+888     888
+888     888 888  888  8888b.  .d8888b   8888b.  888d888
+888     888 888  888     "88b 88K          "88b 888P"
+888 Y8b 888 888  888 .d888888 "Y8888b. .d888888 888
+Y88b.Y8b88P Y88b 888 888  888      X88 888  888 888
+ "Y888888"   "Y88888 "Y888888  88888P' "Y888888 888
+       Y8b
+
+
+ Build mode............. spa
+ Pkg quasar............. v2.18.6
+ Pkg @quasar/app-vite... v2.4.0
+ Pkg vite............... v7.3.1
+ Debugging.............. no
+ Publishing............. no
+
+ App • Using quasar.config.js in "esm" format
+[dotenv@17.2.3] injecting env (2) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+ App • Using .env files: .env
+ App •  WAIT  • Compiling of SPA UI with Vite in progress...
+[33m[plugin vite:reporter] 
+(!) C:/SPDC/convocatoria-front/src/boot/axios.js is dynamically imported by C:/SPDC/convocatoria-front/.quasar/prod-spa/client-entry.js but also statically imported by C:/SPDC/convocatoria-front/src/components/AdminDashboard.vue, C:/SPDC/convocatoria-front/src/components/ConsultaEstado.vue, C:/SPDC/convocatoria-front/src/components/admin/AdminCargos.vue, C:/SPDC/convocatoria-front/src/components/admin/AdminNiveles.vue, C:/SPDC/convocatoria-front/src/components/admin/AdminRoles.vue, C:/SPDC/convocatoria-front/src/components/admin/AdminSedes.vue, C:/SPDC/convocatoria-front/src/components/admin/AdminUsuarios.vue, C:/SPDC/convocatoria-front/src/components/admin/ReportsDashboard.vue, C:/SPDC/convocatoria-front/src/components/admin/TiposDocumentoManager.vue, C:/SPDC/convocatoria-front/src/components/postulacion/steps/StepHojaVida.vue, C:/SPDC/convocatoria-front/src/pages/ChangePasswordPage.vue, C:/SPDC/convocatoria-front/src/stores/auth-store.js, C:/SPDC/convocatoria-front/src/stores/postulacion-store.js, dynamic import will not move module into another chunk.
+[39m
+[33m
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+ App •  DONE  • SPA UI compiled with success by Vite • 9749ms
+
+ Build summary with important files:
+ ╔══════════════════════════════════════════════╦══════════════╦══════════════╗
+ ║                                        Asset ║         Size ║      Gzipped ║
+ ╟──────────────────────────────────────────────╫──────────────╫──────────────╢
+ ║                 assets/AdminPage-DcUh_4NM.js ║    708.54 KB ║    262.34 KB ║
+ ║                      assets/auth-BWjLbmn8.js ║      0.19 KB ║      0.17 KB ║
+ ║        assets/ChangePasswordPage-DvcRWG1n.js ║      3.41 KB ║      1.49 KB ║
+ ║             assets/ConsultarPage-BhJsLSMg.js ║      6.66 KB ║      2.75 KB ║
+ ║             assets/ErrorNotFound-4iWyVycJ.js ║      0.50 KB ║      0.36 KB ║
+ ║                    assets/format-BLl5x09r.js ║      1.27 KB ║      0.69 KB ║
+ ║                      assets/i18n-PtIXBMYv.js ║     52.21 KB ║     17.35 KB ║
+ ║                     assets/index-Bde4KftV.js ║    246.44 KB ║     90.06 KB ║
+ ║                 assets/IndexPage-koNuZopb.js ║     68.37 KB ║     19.72 KB ║
+ ║                 assets/LoginPage-BaTzJ_ND.js ║      3.12 KB ║      1.44 KB ║
+ ║              assets/logo_unitepc-acazfiv4.js ║      0.06 KB ║      0.08 KB ║
+ ║                assets/MainLayout-DQklyYbx.js ║     20.79 KB ║      7.54 KB ║
+ ║                assets/PortalPage-oPJMMjFY.js ║     11.25 KB ║      3.66 KB ║
+ ║         assets/postulacion-store--i9lWM-F.js ║      6.78 KB ║      1.90 KB ║
+ ║              assets/PublicLayout-DTZkRCDF.js ║      0.35 KB ║      0.26 KB ║
+ ║                     assets/QChip-CWC5rkks.js ║      2.63 KB ║      1.13 KB ║
+ ║                     assets/QForm-CPy1zW_y.js ║      2.20 KB ║      1.04 KB ║
+ ║                   assets/QLayout-B-nGtowj.js ║      4.92 KB ║      2.12 KB ║
+ ║                     assets/QPage-Bgt1qza8.js ║      0.88 KB ║      0.48 KB ║
+ ║           assets/QResizeObserver-B_kiypXF.js ║      1.57 KB ║      0.85 KB ║
+ ║                   assets/QSelect-CPEQUEDN.js ║     58.60 KB ║     19.05 KB ║
+ ║                assets/use-quasar-DKz8Uro6.js ║      0.08 KB ║      0.09 KB ║
+ ║            assets/useGoogleDrive-D12xHbjT.js ║      2.29 KB ║      1.20 KB ║
+ ║ assets/_plugin-vue_export-helper-DlAUqK2U.js ║      0.09 KB ║      0.10 KB ║
+ ╟──────────────────────────────────────────────╫──────────────╫──────────────╢
+ ║                assets/AdminPage-C5p3sNU8.css ║      0.29 KB ║      0.20 KB ║
+ ║            assets/ConsultarPage-BowS94Wm.css ║      0.91 KB ║      0.45 KB ║
+ ║                    assets/index-BaDhaRli.css ║    239.98 KB ║     41.84 KB ║
+ ║                assets/IndexPage--B5co3wX.css ║      1.53 KB ║      0.68 KB ║
+ ║               assets/PortalPage-jF0LnJth.css ║      0.58 KB ║      0.27 KB ║
+ ╟──────────────────────────────────────────────╫──────────────╫──────────────╢
+ ║                                   index.html ║      0.88 KB ║            - ║
+ ╠══════════════════════════════════════════════╬══════════════╬══════════════╣
+ ║                          Total JS (24 files) ║   1203.20 KB ║            - ║
+ ║                          Total CSS (5 files) ║    243.30 KB ║            - ║
+ ╚══════════════════════════════════════════════╩══════════════╩══════════════╝
+
+ Build succeeded
+
+ Build mode............. spa
+ Pkg quasar............. v2.18.6
+ Pkg @quasar/app-vite... v2.4.0
+ Pkg vite............... v7.3.1
+ Debugging.............. no
+ Publishing............. no
+ Browser target......... es2022|firefox115|chrome115|safari14
+ =======================
+ Output folder.......... C:\SPDC\convocatoria-front\dist\spa
+
+ Tip: Built files are meant to be served over an HTTP server
+      Opening index.html over file:// won't work
+
+ Tip: You can use "$ quasar serve" command to create a web server,
+      both for testing or production. Type "$ quasar serve -h" for
+      parameters. Also, an npm script (usually named "start") can
+      be added for deployment environments.
+      If you're using Vue Router "history" mode, don't forget to
+      specify the "--history" parameter: "$ quasar serve --history"
+

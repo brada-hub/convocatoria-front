@@ -16,6 +16,12 @@ export const usePostulacionStore = defineStore('postulacion', {
       email: '',
       celular: '',
       foto_perfil: null,
+      nacionalidad: '',
+      direccion: '',
+      ci_expedido: '',
+      ci_documento: null,
+      carta_postulacion: null,
+      curriculum_vitae: null,
     },
     esPostulanteExistente: false,
     tieneExpediente: false,
@@ -109,6 +115,12 @@ export const usePostulacionStore = defineStore('postulacion', {
         email: '',
         celular: '',
         foto_perfil: null,
+        nacionalidad: '',
+        direccion: '',
+        ci_expedido: '',
+        ci_documento: null,
+        carta_postulacion: null,
+        curriculum_vitae: null,
       }
       this.esPostulanteExistente = false
       this.tieneExpediente = false
@@ -216,6 +228,11 @@ export const usePostulacionStore = defineStore('postulacion', {
             email: p.email || '',
             celular: p.celular,
             foto_perfil: p.foto_perfil,
+            nacionalidad: p.nacionalidad || '',
+            direccion: p.direccion || '',
+            ci_expedido: p.ci_expedido || '',
+            // carta y cv no se cargan como File objects, el usuario debe resubirlos si quiere cambiarlos
+            // O podríamos cargar la URL para mostrar que ya existe (TODO frontend handling)
           }
 
           // Cargar expediente existente
@@ -278,6 +295,20 @@ export const usePostulacionStore = defineStore('postulacion', {
         formData.append('apellidos', this.postulante.apellidos)
         formData.append('email', this.postulante.email || '')
         formData.append('celular', this.postulante.celular)
+        formData.append('nacionalidad', this.postulante.nacionalidad || '')
+        formData.append('direccion', this.postulante.direccion || '')
+        formData.append('ci_expedido', this.postulante.ci_expedido || '')
+
+        // Archivos Postulante
+        if (this.postulante.carta_postulacion instanceof File) {
+          formData.append('carta_postulacion', this.postulante.carta_postulacion)
+        }
+        if (this.postulante.curriculum_vitae instanceof File) {
+          formData.append('curriculum_vitae', this.postulante.curriculum_vitae)
+        }
+        if (this.postulante.ci_documento instanceof File) {
+          formData.append('ci_documento', this.postulante.ci_documento)
+        }
 
         // Foto de perfil
         if (this.postulante.foto_perfil instanceof File) {

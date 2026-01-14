@@ -80,6 +80,10 @@
                   <button @click="gestionarOfertas(props.row)"
                     class="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"><q-icon
                       name="settings" size="18px" /></button>
+                  <button @click="openAfichePreview(props.row)"
+                    class="p-1.5 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Ver Afiche">
+                    <q-icon name="image" size="18px" />
+                  </button>
                   <button @click="verPostulaciones(props.row)"
                     class="p-1.5 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors relative">
                     <q-icon name="visibility" size="18px" />
@@ -94,6 +98,11 @@
             </template>
           </q-table>
         </div>
+      </div>
+
+      <!-- VISTA: GESTIÓN CONVOCATORIAS (Ver Postulantes) -->
+      <div v-show="activeTab === 'gestion-convocatorias'" class="animate-fadeIn">
+        <ConvocatoriasPostulantes @ver-expediente="verExpediente" />
       </div>
 
       <!-- VISTA: SEDES -->
@@ -244,8 +253,31 @@
                   <div class="col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                     <q-input v-model="convocatoriaForm.descripcion" outlined dense type="textarea" bg-color="white"
-                      rows="3" />
+                      rows="2" placeholder="Breve descripción de la convocatoria..." />
                   </div>
+
+                  <!-- Perfil Profesional Requerido -->
+                  <div class="col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      <q-icon name="school" class="mr-1" /> Perfil Profesional Requerido
+                    </label>
+                    <q-input v-model="convocatoriaForm.perfil_profesional" outlined dense type="textarea" bg-color="white"
+                      rows="4" placeholder="• Título profesional a nivel licenciatura (obligatorio)
+• Diplomado en Educación Superior (deseable)
+• Maestría en el área (deseable)
+• Doctorado (deseable)" />
+                  </div>
+
+                  <!-- Experiencia Requerida -->
+                  <div class="col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      <q-icon name="work_history" class="mr-1" /> Experiencia Requerida
+                    </label>
+                    <q-input v-model="convocatoriaForm.experiencia_requerida" outlined dense type="textarea" bg-color="white"
+                      rows="3" placeholder="• Experiencia mínima de 5 años en docencia universitaria
+• Experiencia mínima de 3 años en cargos de gestión académica" />
+                  </div>
+
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Inicio <span
                         class="text-red-500">*</span></label>
@@ -256,9 +288,18 @@
                         class="text-red-500">*</span></label>
                     <q-input v-model="convocatoriaForm.fecha_cierre" outlined dense type="date" bg-color="white" />
                   </div>
+
+                  <!-- Hora Límite -->
+                  <div class="col-span-2 md:col-span-1">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      <q-icon name="schedule" class="mr-1" /> Hora Límite de Postulación
+                    </label>
+                    <q-input v-model="convocatoriaForm.hora_limite" outlined dense type="time" bg-color="white" />
+                  </div>
+
                   <div class="col-span-2 bg-blue-50 p-4 rounded-xl text-blue-800 text-sm flex items-center gap-3">
                     <q-icon name="auto_mode" size="20px" />
-                    <span>La convocatoria se activará automáticamente entre las fechas seleccionadas.</span>
+                    <span>La convocatoria se activará automáticamente entre las fechas seleccionadas hasta la hora límite indicada.</span>
                   </div>
                 </div>
 
@@ -947,6 +988,204 @@
       </q-card>
     </q-dialog>
 
+    <!-- Dialog Afiche Generado -->
+    <q-dialog v-model="showAficheDialog">
+      <q-card style="min-width: 600px; overflow: hidden; border-radius: 8px;">
+        <q-card-section class="row items-center q-pb-none bg-gray-50 border-b border-gray-100">
+          <div class="text-h6 text-gray-800">Afiche Generado</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section class="q-pa-md flex justify-center bg-gray-100 scroll" style="max-height: 80vh;">
+           <!-- CONTENIDO DEL AFICHE (Canvas Target) -->
+           <div class="transform-gpu flex-shrink-0 shadow-2xl overflow-hidden"
+                style="transform: scale(0.85); transform-origin: top center;">
+              <div id="afiche-content" class="bg-white relative shadow-lg flex-shrink-0 flex flex-col" style="width: 595px; height: 842px; overflow: hidden;">
+              <!-- Texture Background -->
+              <div class="absolute inset-0 opacity-10 pointer-events-none"
+                   style="background-image: repeating-linear-gradient(45deg, #4f46e5 25%, transparent 25%, transparent 75%, #4f46e5 75%, #4f46e5), repeating-linear-gradient(45deg, #4f46e5 25%, #f0f0ff 25%, #f0f0ff 75%, #4f46e5 75%, #4f46e5); background-position: 0 0, 10px 10px; background-size: 20px 20px;"></div>
+
+              <!-- Header with UNITEPC Logo -->
+              <div class="h-28 bg-white relative flex flex-col items-center justify-center pt-6 z-10">
+                  <div class="flex items-baseline gap-0 mb-1">
+                      <span class="text-5xl font-black tracking-tight" style="color: #502f80; font-family: Arial Black, sans-serif;">UNI</span>
+                      <span class="text-5xl font-black tracking-tight" style="color: #009587; font-family: Arial Black, sans-serif;">TEPC</span>
+                  </div>
+                  <div class="text-[10px] font-bold uppercase tracking-[0.3em] mt-1" style="color: #009587;">
+                      UNIVERSIDAD PRIVADA
+                  </div>
+              </div>
+
+              <!-- Title Section -->
+              <div class="relative py-2 flex flex-col justify-center items-center z-10 w-full mb-2">
+                  <h2 class="text-2xl font-bold uppercase tracking-[0.2em] mb-1" style="color: #502f80;">CONVOCATORIA</h2>
+                  <div class="bg-[#502f80] text-white px-8 py-2 rounded-full font-black text-xl shadow-xl relative z-10 uppercase tracking-wide border-4 border-white text-center max-w-[90%] break-all leading-tight">
+                    {{ aficheConvocatoria?.titulo || 'DIRECCIÓN DE CARRERA' }}
+                  </div>
+              </div>
+
+              <div class="px-8 py-2 text-gray-800 text-sm leading-relaxed relative z-10 flex-1 flex flex-col overflow-hidden">
+
+                  <!-- Descripción (Se encoge para dar espacio al perfil) -->
+                  <div class="mb-3 text-center text-gray-700 font-medium text-xs px-2 leading-tight text-justify overflow-hidden shrink min-h-0 flex flex-col justify-center">
+                    <div class="break-all whitespace-pre-wrap line-clamp-[12]">
+                        {{ aficheConvocatoria?.descripcion || convocatoriaForm.descripcion || 'La Universidad Técnica Privada Cosmos invita a profesionales a postularse a esta convocatoria.' }}
+                    </div>
+                  </div>
+
+                  <!-- Perfil y Experiencia (Fijos, no se encogen) -->
+                  <div class="space-y-3 text-left shrink-0">
+                    <div v-if="aficheConvocatoria?.perfil_profesional || convocatoriaForm.perfil_profesional" class="relative">
+                        <h3 class="font-black mb-1 uppercase text-[10px] tracking-widest flex items-center gap-2" style="color: #502f80;">
+                          <q-icon name="school" size="14px" style="color: #009587;" /> Perfil Profesional
+                        </h3>
+                        <div class="pl-3 text-gray-700 text-[10px] border-l-4 py-1 break-all whitespace-pre-wrap line-clamp-6" style="border-color: #502f80;">
+                          {{ aficheConvocatoria?.perfil_profesional || convocatoriaForm.perfil_profesional }}
+                        </div>
+                    </div>
+
+                    <div v-if="aficheConvocatoria?.experiencia_requerida || convocatoriaForm.experiencia_requerida" class="relative">
+                        <h3 class="font-black mb-1 uppercase text-[10px] tracking-widest flex items-center gap-2" style="color: #502f80;">
+                          <q-icon name="work_history" size="14px" style="color: #009587;" /> Experiencia
+                        </h3>
+                        <div class="pl-3 text-gray-700 text-[10px] border-l-4 py-1 break-all whitespace-pre-wrap line-clamp-6" style="border-color: #009587;">
+                          {{ aficheConvocatoria?.experiencia_requerida || convocatoriaForm.experiencia_requerida }}
+                        </div>
+                    </div>
+                  </div>
+              </div>
+
+              <!-- Bottom / Footer -->
+              <div class="w-full h-[220px] relative shrink-0 mt-auto">
+                  <!-- Footer Background Gradient -->
+                  <div class="absolute bottom-0 w-full h-full bg-gradient-to-t from-[#502f80] via-[#502f80]/95 to-transparent"></div>
+
+                  <div class="absolute bottom-0 w-full flex items-end justify-between px-8 pb-6 z-20">
+
+                      <!-- Left: Fecha Límite -->
+                      <div class="mb-1 text-white">
+                         <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-white/10 p-2 rounded-lg backdrop-blur-md border border-white/20">
+                              <q-icon name="event" size="24px" class="text-white" />
+                            </div>
+                            <div>
+                              <div class="text-[9px] font-bold uppercase tracking-widest opacity-80 mb-0.5">Fecha Límite</div>
+                              <div class="text-2xl font-black text-white leading-none tracking-tight">
+                                  {{ aficheConvocatoria?.fecha_cierre ? new Date(String(aficheConvocatoria.fecha_cierre).substring(0,10) + 'T12:00:00').toLocaleDateString('es-BO', { day: 'numeric', month: 'long', year: 'numeric' }) : '-' }}
+                              </div>
+                            </div>
+                         </div>
+                         <div v-if="aficheConvocatoria?.hora_limite" class="flex items-center gap-2 text-xs font-bold bg-[#009587] px-3 py-1.5 rounded-full w-max text-white shadow-lg">
+                            <q-icon name="schedule" size="14px" />
+                            Hasta las {{ aficheConvocatoria.hora_limite.substring(0,5) }} hrs.
+                         </div>
+                      </div>
+
+                      <!-- Right: QR and CTA -->
+                      <div class="flex flex-col items-center bg-white p-2.5 rounded-xl shadow-2xl relative border-4 transform translate-y-2" style="border-color: #009587;">
+                          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#009587] text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Escanea</div>
+
+                          <qrcode-vue :value="aficheConvocatoria?.url_postulacion || 'https://unitepc.edu.bo'" :size="110" level="H" foreground="#502f80" />
+
+                          <div class="mt-1.5 text-center w-full pt-1.5 border-t border-gray-100">
+                              <div class="text-base font-black leading-none tracking-tight" style="color: #502f80;">POSTÚLATE</div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+           </div>
+           </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-md bg-white border-t border-gray-100">
+          <q-btn flat label="Cerrar" color="grey-7" v-close-popup />
+          <q-btn icon="download" label="Descargar Imagen" color="primary" @click="downloadAfiche" unelevated class="rounded-lg px-4 font-bold" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- HIDDEN RENDER TARGET (Full HD 1080x1350) for Image Generation -->
+    <div id="afiche-render-target" class="bg-white flex flex-col" style="position: fixed; left: 0; top: 0; width: 1080px; height: 1350px; z-index: -100; overflow: hidden;">
+         <!-- Header -->
+              <div class="h-36 bg-white relative w-full flex flex-col items-center justify-center pt-4 z-10 shrink-0 text-center">
+                  <div class="flex items-center justify-center gap-0 mb-0 w-full">
+                      <span class="text-6xl font-black tracking-tight" style="color: #502f80; font-family: Arial Black, sans-serif;">UNI</span>
+                      <span class="text-6xl font-black tracking-tight" style="color: #009587; font-family: Arial Black, sans-serif;">TEPC</span>
+                  </div>
+                  <div class="text-sm font-bold uppercase tracking-[0.3em] mt-1" style="color: #009587;">
+                      UNIVERSIDAD PRIVADA
+                  </div>
+              </div>
+
+              <!-- Title -->
+              <div class="relative py-4 flex flex-col justify-center items-center z-10 w-full mb-3 shrink-0">
+                  <h2 class="text-3xl font-bold uppercase tracking-[0.2em] mb-2" style="color: #502f80;">CONVOCATORIA</h2>
+                  <div class="bg-[#502f80] text-white px-10 py-3 rounded-full font-black text-2xl shadow-xl relative z-10 uppercase tracking-wide border-4 border-white text-center max-w-[90%] break-all leading-tight">
+                    {{ aficheConvocatoria?.titulo || 'CONVOCATORIA' }}
+                  </div>
+              </div>
+
+              <!-- Content -->
+              <div class="px-12 py-4 text-gray-800 leading-relaxed relative z-10 flex-1 flex flex-col overflow-hidden w-full">
+                  <div class="w-full mb-6 text-center text-gray-700 font-medium px-4 leading-relaxed text-justify text-2xl break-all whitespace-pre-wrap max-h-[250px] overflow-hidden text-ellipsis shrink">
+                    {{ aficheConvocatoria?.descripcion || 'La Universidad Técnica Privada Cosmos invita a profesionales a postularse a esta convocatoria.' }}
+                  </div>
+
+                  <div class="w-full space-y-8 text-left shrink-0">
+                    <div v-if="aficheConvocatoria?.perfil_profesional">
+                        <h3 class="font-black mb-2 uppercase text-xl tracking-widest flex items-center gap-3" style="color: #502f80;">
+                          <q-icon name="school" size="32px" style="color: #009587;" /> Perfil Profesional
+                        </h3>
+                        <div class="pl-6 text-gray-700 text-xl border-l-8 py-2 break-all whitespace-pre-wrap max-h-[220px] overflow-hidden" style="border-color: #502f80;">
+                          {{ aficheConvocatoria?.perfil_profesional }}
+                        </div>
+                    </div>
+
+                    <div v-if="aficheConvocatoria?.experiencia_requerida">
+                        <h3 class="font-black mb-2 uppercase text-xl tracking-widest flex items-center gap-3" style="color: #502f80;">
+                          <q-icon name="work_history" size="32px" style="color: #009587;" /> Experiencia
+                        </h3>
+                        <div class="pl-6 text-gray-700 text-xl border-l-8 py-2 break-all whitespace-pre-wrap max-h-[220px] overflow-hidden" style="border-color: #009587;">
+                          {{ aficheConvocatoria?.experiencia_requerida }}
+                        </div>
+                    </div>
+                  </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="w-full h-[320px] relative shrink-0 mt-auto">
+                  <div class="absolute bottom-0 w-full h-full bg-gradient-to-t from-[#502f80] via-[#502f80]/95 to-transparent"></div>
+
+                  <div class="absolute bottom-0 w-full flex items-end justify-between px-16 pb-12 z-20">
+                      <div class="mb-2 text-white">
+                         <div class="flex items-center gap-4 mb-4">
+                            <div class="bg-white/10 p-4 rounded-xl backdrop-blur-md border border-white/20">
+                              <q-icon name="event" size="40px" class="text-white" />
+                            </div>
+                            <div>
+                              <div class="text-sm font-bold uppercase tracking-widest opacity-80 mb-1">Fecha Límite</div>
+                              <div class="text-4xl font-black text-white leading-none tracking-tight">
+                                  {{ aficheConvocatoria?.fecha_cierre ? new Date(String(aficheConvocatoria.fecha_cierre).substring(0,10) + 'T12:00:00').toLocaleDateString('es-BO', { day: 'numeric', month: 'long', year: 'numeric' }) : '-' }}
+                              </div>
+                            </div>
+                         </div>
+                         <div v-if="aficheConvocatoria?.hora_limite" class="flex items-center gap-3 text-lg font-bold bg-[#009587] px-6 py-3 rounded-full w-max text-white shadow-lg">
+                            <q-icon name="schedule" size="24px" />
+                            Hasta las {{ aficheConvocatoria.hora_limite.substring(0,5) }} hrs.
+                         </div>
+                      </div>
+
+                      <div class="flex flex-col items-center bg-white p-5 rounded-2xl shadow-2xl relative border-4 transform translate-y-2" style="border-color: #009587;">
+                          <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#009587] text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest">Escanea</div>
+                          <qrcode-vue :value="aficheConvocatoria?.url_postulacion || 'https://unitepc.edu.bo'" :size="160" level="H" foreground="#502f80" />
+                          <div class="mt-3 text-center w-full pt-2 border-t border-gray-100">
+                              <div class="text-2xl font-black leading-none tracking-tight" style="color: #502f80;">POSTÚLATE</div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+    </div>
   </div>
 </template>
 
@@ -965,10 +1204,15 @@ import AdminUsuarios from './admin/AdminUsuarios.vue'
 import AdminRoles from './admin/AdminRoles.vue'
 import TiposDocumentoManager from './admin/TiposDocumentoManager.vue'
 import ReportsDashboard from './admin/ReportsDashboard.vue'
+import ConvocatoriasPostulantes from './admin/ConvocatoriasPostulantes.vue'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 
 const $q = useQuasar()
 const route = useRoute()
+// Imports
+import QrcodeVue from 'qrcode.vue'
+import html2canvas from 'html2canvas'
+
 const router = useRouter()
 const authStore = useAuthStore()
 
@@ -982,6 +1226,7 @@ const currentSectionTitle = computed(() => {
   const map = {
     dashboard: 'Panel de Control',
     convocatorias: 'Convocatorias',
+    'gestion-convocatorias': 'Gestión de Convocatorias',
     sedes: 'Sedes y Ubicaciones',
     cargos: 'Catálogo de Cargos',
     niveles: 'Niveles Académicos',
@@ -998,6 +1243,8 @@ const currentSectionTitle = computed(() => {
 const loading = ref(false)
 const saving = ref(false)
 const isAuthenticated = computed(() => authStore.isLoggedIn)
+const showAficheDialog = ref(false)
+const aficheConvocatoria = ref(null)
 
 const stats = ref({ convocatorias_activas: 0, total_postulaciones: 0, pendientes: 0, postulantes: 0 })
 const convocatorias = ref([])
@@ -1035,7 +1282,18 @@ const qrCodeUrl = ref('')
 const publicLink = ref('')
 
 // Forms
-const convocatoriaForm = ref({ titulo: '', descripcion: '', fecha_inicio: '', fecha_cierre: '', estado: 'borrador', ofertas: [], documentos: [] })
+const convocatoriaForm = ref({
+  titulo: '',
+  descripcion: '',
+  perfil_profesional: '',
+  experiencia_requerida: '',
+  fecha_inicio: '',
+  fecha_cierre: '',
+  hora_limite: '23:59',
+  estado: 'borrador',
+  ofertas: [],
+  documentos: []
+})
 const nuevaOferta = ref({ sede_id: null, cargos_ids: [], vacantes: 1 }) // vacantes es para el batch add
 const tempOferta = ref({ sede_id: null, cargos_ids: [], vacantes_map: {} }) // vacantes_map para el stepper
 
@@ -1546,6 +1804,9 @@ const editConvocatoria = (item) => {
   // Formatear fechas para el input date HTML5 (YYYY-MM-DD)
   convocatoriaForm.value = {
     ...item,
+    perfil_profesional: item.perfil_profesional || '',
+    experiencia_requerida: item.experiencia_requerida || '',
+    hora_limite: item.hora_limite ? item.hora_limite.substr(0, 5) : '23:59',
     fecha_inicio: item.fecha_inicio ? item.fecha_inicio.split('T')[0] : '',
     fecha_cierre: item.fecha_cierre ? item.fecha_cierre.split('T')[0] : '',
     ofertas: [],
@@ -1595,27 +1856,145 @@ const removeOfertaFromForm = (index) => {
   convocatoriaForm.value.ofertas.splice(index, 1)
 }
 
+// Open afiche preview for existing convocatoria
+// Open afiche preview for existing convocatoria
+const openAfichePreview = async (convocatoria) => {
+    $q.loading.show({ message: 'Preparando afiche...' })
+    let displayData = { ...convocatoria }
+
+    try {
+        // Fetch full details if critical fields are missing (often not included in list view)
+        if (!displayData.perfil_profesional || !displayData.experiencia_requerida) {
+             try {
+                const { data } = await api.get(`/admin/convocatorias/${convocatoria.id}`)
+                const fullData = data.convocatoria || data // Handle different response wrappers if any
+                displayData = { ...displayData, ...fullData }
+                console.log('Full details loaded for afiche:', displayData)
+             } catch (err) {
+                console.warn('Could not fetch full details, using available data', err)
+             }
+        }
+
+        // Fix Dates: Ensure YYYY-MM-DD
+        if(displayData.fecha_cierre && displayData.fecha_cierre.length > 10) {
+            displayData.fecha_cierre = displayData.fecha_cierre.substring(0, 10);
+        }
+
+        // Generate postulation URL if not present
+        if(!displayData.url_postulacion) {
+            displayData.url_postulacion = displayData.slug
+                ? `${window.location.origin}/postular/${displayData.slug}`
+                : 'https://unitepc.edu.bo';
+        }
+
+        aficheConvocatoria.value = displayData
+        showAficheDialog.value = true
+    } catch (error) {
+        console.error('Error opening afiche', error)
+        $q.notify({type: 'negative', message: 'Error al generar previsualización'})
+    } finally {
+        $q.loading.hide()
+    }
+}
+
 const saveConvocatoria = async () => {
   saving.value = true
   try {
+    let savedConv = null
+    const payload = { ...convocatoriaForm.value }
+    // Clean up empty objects
+    if(!payload.perfil_profesional) delete payload.perfil_profesional
+    if(!payload.experiencia_requerida) delete payload.experiencia_requerida
+
     if (editingConvocatoria.value) {
-      // En edición, incluimos documentos pero no ofertas
-      const data = { ...convocatoriaForm.value }
-      delete data.ofertas
-      await api.put(`/admin/convocatorias/${editingConvocatoria.value.id}`, data)
+      delete payload.ofertas // No editar ofertas aquí
+      const res = await api.put(`/admin/convocatorias/${editingConvocatoria.value.id}`, payload)
+      savedConv = res.data
     } else {
-      await api.post('/admin/convocatorias', convocatoriaForm.value)
+      const res = await api.post('/admin/convocatorias', payload)
+      savedConv = res.data
     }
+
     showConvocatoriaDialog.value = false
-    resetConvocatoriaForm()
     loadData()
     $q.notify({ type: 'positive', message: 'Guardado exitosamente' })
-  } catch { $q.notify({ type: 'negative', message: 'Error al guardar' }) }
+
+    // PREPARAR DATOS PARA EL AFICHE
+    const displayData = {
+        ...convocatoriaForm.value,
+        ...(savedConv || {})
+    }
+
+    if(!displayData.url_postulacion) {
+        displayData.url_postulacion = displayData.slug ? `http://localhost:9000/postular/${displayData.slug}` : 'https://unitepc.edu.bo';
+    }
+
+    aficheConvocatoria.value = displayData
+    showAficheDialog.value = true
+
+    // Resetear formulario con delay
+    setTimeout(() => {
+       if(!showAficheDialog.value) resetConvocatoriaForm()
+    }, 1000)
+
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: 'negative', message: 'Error al guardar (Verifique consola)' })
+  }
   finally { saving.value = false }
 }
 
+const downloadAfiche = async () => {
+  const el = document.getElementById('afiche-render-target')
+  if(!el) return
+
+  const title = aficheConvocatoria.value?.titulo || convocatoriaForm.value?.titulo || 'convocatoria';
+  const cleanTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+  try {
+    $q.loading.show({ message: 'Generando imagen HD...' })
+    await new Promise(resolve => setTimeout(resolve, 800))
+
+    const canvas = await html2canvas(el, {
+      scale: 1,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      width: 1080,
+      height: 1350,
+      windowWidth: 1080,
+      windowHeight: 1350,
+      x: 0,
+      y: 0
+    })
+
+    const link = document.createElement('a')
+    link.download = `CONVOCATORIA_${cleanTitle}_${new Date().toISOString().split('T')[0]}.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+
+    $q.notify({ type: 'positive', message: 'Afiche descargado (HD)', icon: 'check_circle' })
+  } catch (err) {
+    console.error('Error generating afiche:', err)
+    $q.notify({type: 'negative', message: 'No se pudo generar la imagen'})
+  } finally {
+    $q.loading.hide()
+  }
+}
+
 const resetConvocatoriaForm = () => {
-  convocatoriaForm.value = { titulo: '', descripcion: '', fecha_inicio: '', fecha_cierre: '', estado: 'borrador', ofertas: [], documentos: [] }
+  convocatoriaForm.value = {
+    titulo: '',
+    descripcion: '',
+    perfil_profesional: '',
+    experiencia_requerida: '',
+    fecha_inicio: '',
+    fecha_cierre: '',
+    hora_limite: '23:59',
+    estado: 'borrador',
+    ofertas: [],
+    documentos: []
+  }
   editingConvocatoria.value = null
   step.value = 1
   tempOferta.value = { sede_id: null, cargos_ids: [], vacantes_map: {} }

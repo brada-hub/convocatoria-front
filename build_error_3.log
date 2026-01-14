@@ -1,0 +1,140 @@
+
+ .d88888b.
+d88P" "Y88b
+888     888
+888     888 888  888  8888b.  .d8888b   8888b.  888d888
+888     888 888  888     "88b 88K          "88b 888P"
+888 Y8b 888 888  888 .d888888 "Y8888b. .d888888 888
+Y88b.Y8b88P Y88b 888 888  888      X88 888  888 888
+ "Y888888"   "Y88888 "Y888888  88888P' "Y888888 888
+       Y8b
+
+
+ Build mode............. spa
+ Pkg quasar............. v2.18.6
+ Pkg @quasar/app-vite... v2.4.0
+ Pkg vite............... v7.3.1
+ Debugging.............. no
+ Publishing............. no
+
+ App • Using quasar.config.js in "esm" format
+[dotenv@17.2.3] injecting env (2) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+ App • Using .env files: .env
+ App •  WAIT  • Compiling of SPA UI with Vite in progress...
+[31m✗[39m Build failed in 5.02s
+[31m[vite:json] orgTransform.apply is not a function[39m
+file: [36mC:/SPDC/convocatoria-front/node_modules/@pdf-lib/standard-fonts/es/Courier-Bold.compressed.json[39m
+    at jsonPlugin.transform (file:///C:/SPDC/convocatoria-front/node_modules/@intlify/unplugin-vue-i18n/lib/index.mjs:220:33)
+    at Object.handler (file:///C:/SPDC/convocatoria-front/node_modules/vite/dist/node/chunks/config.js:33730:13)
+    at file:///C:/SPDC/convocatoria-front/node_modules/rollup/dist/es/shared/node-entry.js:22571:40 {
+  code: 'PLUGIN_ERROR',
+  plugin: 'vite:json',
+  hook: 'transform',
+  id: 'C:/SPDC/convocatoria-front/node_modules/@pdf-lib/standard-fonts/es/Courier-Bold.compressed.json',
+  watchFiles: [
+    'C:/SPDC/convocatoria-front/index.html',
+    'C:/SPDC/convocatoria-front/.quasar/prod-spa/client-entry.js',
+    'C:\\SPDC\\convocatoria-front\\package.json',
+    'C:/SPDC/convocatoria-front/.quasar/prod-spa/app.js',
+    'C:/SPDC/convocatoria-front/node_modules/vue/dist/vue.runtime.esm-bundler.js',
+    'C:/SPDC/convocatoria-front/.quasar/prod-spa/quasar-user-options.js',
+    'C:/SPDC/convocatoria-front/src/boot/i18n.js',
+    'C:/SPDC/convocatoria-front/src/boot/axios.js',
+    'C:/SPDC/convocatoria-front/src/boot/auth.js',
+    'C:/SPDC/convocatoria-front/node_modules/@quasar/extras/roboto-font/roboto-font.css',
+    'C:/SPDC/convocatoria-front/node_modules/@quasar/extras/material-icons/material-icons.css',
+    'C:/SPDC/convocatoria-front/src/css/app.scss',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/dist/quasar.sass',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/vue-plugin.js',
+    'C:/SPDC/convocatoria-front/src/App.vue',
+    'C:/SPDC/convocatoria-front/src/stores/index.js',
+    'C:/SPDC/convocatoria-front/node_modules/@quasar/app-vite/exports/wrappers/wrappers.js',
+    'C:/SPDC/convocatoria-front/node_modules/vue-i18n/dist/vue-i18n.runtime.esm-bundler.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/plugins/dialog/Dialog.js',
+    'C:/SPDC/convocatoria-front/src/router/index.js',
+    'C:/SPDC/convocatoria-front/src/i18n/index.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/plugins/notify/Notify.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/plugins/loading/Loading.js',
+    'C:/SPDC/convocatoria-front/src/stores/auth-store.js',
+    'C:/SPDC/convocatoria-front/node_modules/axios/index.js',
+    'C:/SPDC/convocatoria-front/node_modules/pinia/dist/pinia.mjs',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/plugins/dialog/component/DialogPluginComponent.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/utils/private.dialog/create-dialog.js',
+    'C:/SPDC/convocatoria-front/node_modules/vue-i18n/dist/vue-i18n.runtime.mjs',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/install-quasar.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/plugins/lang/Lang.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/plugins/icon-set/IconSet.js',
+    'C:/SPDC/convocatoria-front/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-bundler.js',
+    'C:/SPDC/convocatoria-front/node_modules/vue-router/dist/vue-router.mjs',
+    'C:/SPDC/convocatoria-front/src/router/routes.js',
+    'node_modules/@quasar/extras/roboto-font/web-font/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbFmUiAw.woff',
+    'node_modules/@quasar/extras/roboto-font/web-font/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuaabVmUiAw.woff',
+    'node_modules/@quasar/extras/roboto-font/web-font/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWub2bVmUiAw.woff',
+    'node_modules/@quasar/extras/roboto-font/web-font/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuYjalmUiAw.woff',
+    'node_modules/@quasar/extras/roboto-font/web-font/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuZtalmUiAw.woff',
+    'node_modules/@quasar/extras/roboto-font/web-font/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiAw.woff',
+    'C:/SPDC/convocatoria-front/node_modules/@quasar/extras/roboto-font/web-font/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbFmUiAw.woff',
+    'C:/SPDC/convocatoria-front/node_modules/@quasar/extras/roboto-font/web-font/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuaabVmUiAw.woff',
+    'C:/SPDC/convocatoria-front/node_modules/@quasar/extras/roboto-font/web-font/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWub2bVmUiAw.woff',
+    'C:/SPDC/convocatoria-front/node_modules/@quasar/extras/roboto-font/web-font/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuYjalmUiAw.woff',
+    'C:/SPDC/convocatoria-front/node_modules/@quasar/extras/roboto-font/web-font/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWuZtalmUiAw.woff',
+    'C:/SPDC/convocatoria-front/node_modules/@quasar/extras/roboto-font/web-font/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiAw.woff',
+    'C:/SPDC/convocatoria-front/tailwind.config.cjs',
+    'node_modules/@quasar/extras/material-icons/web-font/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/utils/private.create/create.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/spinner/QSpinner.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/utils/private.config/nodes.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/utils/scroll/prevent-scroll.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/utils/is/is.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/avatar/QAvatar.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/icon/QIcon.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/utils/event/event.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/btn/QBtn.js',
+    'C:/SPDC/convocatoria-front/node_modules/axios/lib/axios.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/card/QCardSection.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/dialog/QDialog.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/card/QCard.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/card/QCardActions.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/separator/QSeparator.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/utils/private.keyboard/key-composition.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/input/QInput.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/option-group/QOptionGroup.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/composables/private.use-dark/use-dark.js',
+    'node_modules/@quasar/extras/material-icons/web-font/flUhRq6tzZclQEJ-Vdg-IuiaDsNa.woff',
+    'C:/SPDC/convocatoria-front/node_modules/@quasar/extras/material-icons/web-font/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2',
+    'C:/SPDC/convocatoria-front/node_modules/@quasar/extras/material-icons/web-font/flUhRq6tzZclQEJ-Vdg-IuiaDsNa.woff',
+    'C:/SPDC/convocatoria-front/src/layouts/PublicLayout.vue',
+    'C:/SPDC/convocatoria-front/src/pages/ConsultarPage.vue',
+    'C:/SPDC/convocatoria-front/src/pages/AdminPage.vue',
+    'C:/SPDC/convocatoria-front/src/pages/LoginPage.vue',
+    'C:/SPDC/convocatoria-front/src/pages/PortalPage.vue',
+    'C:/SPDC/convocatoria-front/src/pages/ErrorNotFound.vue',
+    'C:/SPDC/convocatoria-front/src/layouts/MainLayout.vue',
+    'C:/SPDC/convocatoria-front/src/pages/IndexPage.vue',
+    'C:/SPDC/convocatoria-front/src/pages/ChangePasswordPage.vue',
+    'C:/SPDC/convocatoria-front/node_modules/@vue/devtools-api/dist/index.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/spinner/use-spinner.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/composables/private.use-size/use-size.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/utils/scroll/scroll.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/plugins/platform/Platform.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/utils/private.render/render.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/directives/ripple/Ripple.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/components/btn/use-btn.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/plugins/screen/Screen.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/plugins/dark/Dark.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/utils/private.symbols/symbols.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/utils/private.config/instance-config.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/utils/private.inject-obj-prop/inject-obj-prop.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/plugins/private.history/History.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/src/plugins/private.body/Body.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/lang/en-US.js',
+    'C:/SPDC/convocatoria-front/node_modules/quasar/icon-set/material-icons.js',
+    'C:/SPDC/convocatoria-front/node_modules/vue-i18n/node_modules/@vue/devtools-api/lib/esm/index.js',
+    'C:/SPDC/convocatoria-front/node_modules/@intlify/core-base/dist/core-base.mjs',
+    'C:/SPDC/convocatoria-front/node_modules/vue-i18n/node_modules/@intlify/shared/dist/shared.mjs',
+    ... 377 more items
+  ]
+}
+
+ App • ⚠️   FAIL  App build failed (check the log above)
+

@@ -2,7 +2,7 @@
     <q-form ref="form" class="step-content animate-fadeInUp">
         <div class="text-h5 q-mb-md text-weight-bold flex items-center">
             <q-icon name="person" class="q-mr-sm" color="primary" />
-            Información Personal
+            Datos Personales
         </div>
 
         <div class="row q-col-gutter-md">
@@ -12,28 +12,13 @@
                 información.
             </div>
 
-            <div class="col-12 col-md-6">
-                <q-input v-model="store.ci" filled label="Carnet de Identidad *" placeholder="Ej: 12345678"
-                    :rules="[val => !!val || 'Requerido']" @blur="verificarCI" :loading="store.loading">
-                    <template v-slot:append>
-                        <q-btn flat round dense icon="search" v-if="!store.loading" @click="verificarCI"
-                            color="primary">
-                            <q-tooltip>Buscar si ya estoy registrado</q-tooltip>
-                        </q-btn>
-                    </template>
-                    <template v-slot:prepend>
-                        <q-icon name="badge" />
-                    </template>
-                </q-input>
+            <div class="col-12 text-blue-900 bg-blue-50 p-3 rounded-lg q-mb-sm text-center"
+                v-if="store.esPostulanteExistente">
+                <q-icon name="check_circle" color="positive" /> Datos cargados automáticamente. Verifique su
+                información.
             </div>
-            <div class="col-12 col-md-6">
-                <q-input v-model="store.postulante.celular" filled label="Celular *" mask="########"
-                    :rules="[val => !!val || 'Requerido']">
-                    <template v-slot:prepend>
-                        <q-icon name="phone" />
-                    </template>
-                </q-input>
-            </div>
+
+            <!-- 1. Nombres -->
             <div class="col-12 col-md-6">
                 <q-input v-model="store.postulante.nombres" filled label="Nombres *"
                     :rules="[val => !!val || 'Requerido']">
@@ -42,6 +27,8 @@
                     </template>
                 </q-input>
             </div>
+
+            <!-- 2. Apellidos -->
             <div class="col-12 col-md-6">
                 <q-input v-model="store.postulante.apellidos" filled label="Apellidos *"
                     :rules="[val => !!val || 'Requerido']">
@@ -50,44 +37,166 @@
                     </template>
                 </q-input>
             </div>
-            <div class="col-12 col-md-6">
-                <q-input v-model="store.postulante.email" filled label="Correo Electrónico *" type="email"
-                    :rules="[val => !!val || 'Requerido', val => /.+@.+\..+/.test(val) || 'Correo inválido']">
-                    <template v-slot:prepend>
-                        <q-icon name="email" />
-                    </template>
-                </q-input>
-            </div>
-            <div class="col-12 col-md-6">
-                <div class="text-subtitle2 q-mb-sm text-grey-7">Foto de Perfil *</div>
-                <!-- Preview de foto existente o nueva -->
+
+            <!-- 3. Foto de Perfil -->
+            <div class="col-12">
+                <div class="text-subtitle2 q-mb-xs text-grey-8 font-bold">Fotografía Personal *</div>
                 <div v-if="photoPreviewUrl"
-                    class="mb-3 flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <q-avatar size="70px" class="shadow-md">
-                        <img :src="photoPreviewUrl">
+                    class="mb-3 flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200 w-full md:w-1/2">
+                    <q-avatar size="60px" class="shadow-sm">
+                        <img :src="photoPreviewUrl" class="object-cover">
                     </q-avatar>
                     <div>
                         <div class="text-sm font-bold text-green-700 flex items-center gap-1">
                             <q-icon name="check_circle" color="positive" />
                             Foto cargada
                         </div>
-                        <div class="text-xs text-gray-500 mt-1">
-                            {{ store.postulante.foto_perfil?.name || 'Foto de perfil' }}
+                        <div class="text-xs text-gray-500 mt-0.5 ellipse">
+                            {{ store.postulante.foto_perfil?.name || 'Foto actual' }}
                         </div>
                     </div>
                 </div>
-                <div class="flex items-start gap-2">
-                    <q-file v-model="store.postulante.foto_perfil" filled label="Seleccionar foto (Rostro)"
-                        accept="image/*" max-file-size="2097152" @rejected="onRejected" class="full-width"
-                        :rules="[val => (!!val || !!existingPhotoUrl) || 'Foto requerida']">
-                        <template v-slot:prepend>
-                            <q-icon name="photo_camera" />
-                        </template>
-                    </q-file>
-                    <div class="pt-2">
-                        <GoogleDriveUploadBtn mime-types="image/jpeg,image/png,image/jpg"
-                            @file-selected="(f) => store.postulante.foto_perfil = f" />
+                <!-- TODO: Restaurar GoogleDriveUploadBtn si es necesario -->
+                <q-file v-model="store.postulante.foto_perfil" filled label="Subir fotografía (Rostro)"
+                    accept="image/*,application/pdf" max-file-size="5242880" @rejected="onRejected" class="full-width"
+                    :rules="[val => (!!val || !!existingPhotoUrl) || 'Foto requerida']">
+                    <template v-slot:prepend>
+                        <q-icon name="photo_camera" />
+                    </template>
+                </q-file>
+            </div>
+
+            <!-- 4. Cédula de Identidad + Expedido -->
+            <div class="col-12 col-md-6">
+                <div class="row q-col-gutter-sm">
+                    <div class="col-8">
+                        <q-input v-model="store.ci" filled label="Cédula de Identidad *" placeholder="Ej: 12345678"
+                            :rules="[val => !!val || 'Requerido']" @blur="verificarCI" :loading="store.loading">
+                            <template v-slot:append>
+                                <q-btn flat round dense icon="search" v-if="!store.loading" @click="verificarCI" color="primary">
+                                    <q-tooltip>Verificar si ya estoy registrado</q-tooltip>
+                                </q-btn>
+                            </template>
+                            <template v-slot:prepend>
+                                <q-icon name="badge" />
+                            </template>
+                        </q-input>
                     </div>
+                    <div class="col-4">
+                        <q-select v-model="store.postulante.ci_expedido" filled label="Exp. *"
+                            :options="departamentosBolivia" emit-value map-options
+                            :rules="[val => !!val || 'Requerido']">
+                            <template v-slot:prepend>
+                                <q-icon name="location_on" />
+                            </template>
+                        </q-select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Nacionalidad -->
+            <div class="col-12 col-md-6">
+                <q-input v-model="store.postulante.nacionalidad" filled label="Nacionalidad *"
+                    :rules="[val => !!val || 'Requerido']">
+                    <template v-slot:prepend>
+                        <q-icon name="public" />
+                    </template>
+                </q-input>
+            </div>
+
+            <!-- 6. Dirección -->
+            <div class="col-12">
+                <q-input v-model="store.postulante.direccion" filled label="Dirección de domicilio *"
+                    :rules="[val => !!val || 'Requerido']">
+                    <template v-slot:prepend>
+                        <q-icon name="home" />
+                    </template>
+                </q-input>
+            </div>
+
+            <!-- 7. Celular -->
+            <div class="col-12 col-md-6">
+                <q-input v-model="store.postulante.celular" filled label="Número de celular de contacto *" mask="########"
+                    :rules="[val => !!val || 'Requerido']">
+                    <template v-slot:prepend>
+                        <q-icon name="phone" />
+                    </template>
+                </q-input>
+            </div>
+
+             <!-- 8. Correo -->
+            <div class="col-12 col-md-6">
+                <q-input v-model="store.postulante.email" filled label="Correo electrónico *" type="email"
+                    :rules="[val => !!val || 'Requerido', val => /.+@.+\..+/.test(val) || 'Correo inválido']">
+                    <template v-slot:prepend>
+                        <q-icon name="email" />
+                    </template>
+                </q-input>
+            </div>
+
+            <!-- Documentos Generales Section -->
+            <div class="col-12">
+                <div class="text-h6 q-mb-md flex items-center gap-2" style="color: #f59e0b;">
+                    <q-icon name="folder_open" size="28px" />
+                    Documentos Generales
+                </div>
+            </div>
+
+            <!-- Carta de Postulación -->
+            <div class="col-12 col-md-4">
+                <div class="document-card">
+                    <div class="document-title">Carta de Postulación <span class="text-red">*</span></div>
+                    <div class="document-dropzone" @click="$refs.cartaInput.$el.querySelector('input').click()">
+                        <q-icon name="cloud_upload" size="40px" class="text-amber-500" />
+                        <div class="text-amber-600 font-medium mt-2">Click para subir</div>
+                        <div class="text-grey-5 text-xs">PDF · Max 2MB</div>
+                        <div v-if="store.postulante.carta_postulacion" class="uploaded-file">
+                            <q-icon name="check_circle" color="positive" size="16px" />
+                            {{ store.postulante.carta_postulacion?.name || 'Archivo cargado' }}
+                        </div>
+                    </div>
+                    <GoogleDriveUploadBtn class="drive-btn" @file-selected="(f) => store.postulante.carta_postulacion = f" />
+                    <q-file ref="cartaInput" v-model="store.postulante.carta_postulacion" accept=".pdf,.doc,.docx"
+                        max-file-size="2097152" @rejected="onRejected" class="hidden" />
+                </div>
+            </div>
+
+            <!-- Curriculum Vitae -->
+            <div class="col-12 col-md-4">
+                <div class="document-card">
+                    <div class="document-title">Curriculum Vitae (CV) <span class="text-red">*</span></div>
+                    <div class="document-dropzone" @click="$refs.cvInput.$el.querySelector('input').click()">
+                        <q-icon name="cloud_upload" size="40px" class="text-amber-500" />
+                        <div class="text-amber-600 font-medium mt-2">Click para subir</div>
+                        <div class="text-grey-5 text-xs">PDF · Max 2MB</div>
+                        <div v-if="store.postulante.curriculum_vitae" class="uploaded-file">
+                            <q-icon name="check_circle" color="positive" size="16px" />
+                            {{ store.postulante.curriculum_vitae?.name || 'Archivo cargado' }}
+                        </div>
+                    </div>
+                    <GoogleDriveUploadBtn class="drive-btn" @file-selected="(f) => store.postulante.curriculum_vitae = f" />
+                    <q-file ref="cvInput" v-model="store.postulante.curriculum_vitae" accept=".pdf"
+                        max-file-size="2097152" @rejected="onRejected" class="hidden" />
+                </div>
+            </div>
+
+            <!-- Cédula de Identidad (documento) -->
+            <div class="col-12 col-md-4">
+                <div class="document-card">
+                    <div class="document-title">Cédula de Identidad <span class="text-red">*</span></div>
+                    <div class="document-dropzone" @click="$refs.ciDocInput.$el.querySelector('input').click()">
+                        <q-icon name="cloud_upload" size="40px" class="text-amber-500" />
+                        <div class="text-amber-600 font-medium mt-2">Click para subir</div>
+                        <div class="text-grey-5 text-xs">PDF o Imagen · Max 2MB</div>
+                        <div v-if="store.postulante.ci_documento" class="uploaded-file">
+                            <q-icon name="check_circle" color="positive" size="16px" />
+                            {{ store.postulante.ci_documento?.name || 'Archivo cargado' }}
+                        </div>
+                    </div>
+                    <GoogleDriveUploadBtn class="drive-btn" mime-types="application/pdf,image/*"
+                        @file-selected="(f) => store.postulante.ci_documento = f" />
+                    <q-file ref="ciDocInput" v-model="store.postulante.ci_documento" accept=".pdf,image/*"
+                        max-file-size="2097152" @rejected="onRejected" class="hidden" />
                 </div>
             </div>
         </div>
@@ -108,11 +217,25 @@ import { usePostulacionStore } from 'stores/postulacion-store'
 import { useQuasar } from 'quasar'
 import GoogleDriveUploadBtn from 'src/components/common/GoogleDriveUploadBtn.vue'
 
+
 const store = usePostulacionStore()
 const $q = useQuasar()
 const form = ref(null)
 
 const emit = defineEmits(['next', 'prev'])
+
+// Departamentos de Bolivia para el selector de Expedido
+const departamentosBolivia = [
+    { label: 'LP', value: 'LP' },
+    { label: 'CB', value: 'CB' },
+    { label: 'SC', value: 'SC' },
+    { label: 'OR', value: 'OR' },
+    { label: 'PT', value: 'PT' },
+    { label: 'TJ', value: 'TJ' },
+    { label: 'CH', value: 'CH' },
+    { label: 'BE', value: 'BE' },
+    { label: 'PA', value: 'PA' },
+]
 
 const existingPhotoUrl = computed(() => {
     if (store.esPostulanteExistente && typeof store.postulante.foto_perfil === 'string') {
@@ -174,3 +297,63 @@ const validateAndNext = async () => {
     emit('next')
 }
 </script>
+
+<style scoped>
+.document-card {
+    background: white;
+    border: 2px solid #fef3c7;
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.document-card:hover {
+    border-color: #f59e0b;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
+
+.document-title {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.document-dropzone {
+    border: 2px dashed #fcd34d;
+    border-radius: 8px;
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fffbeb;
+}
+
+.document-dropzone:hover {
+    border-color: #f59e0b;
+    background: #fef3c7;
+}
+
+.uploaded-file {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 11px;
+    color: #059669;
+    font-weight: 500;
+    word-break: break-all;
+}
+
+.drive-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+}
+
+.hidden {
+    display: none !important;
+}
+</style>
