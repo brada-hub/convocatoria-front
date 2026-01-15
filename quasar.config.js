@@ -6,7 +6,7 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-export default defineConfig((_ctx) => {
+export default defineConfig(() => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
