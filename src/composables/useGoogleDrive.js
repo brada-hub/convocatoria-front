@@ -5,7 +5,7 @@ import { useQuasar } from 'quasar'
 // Constantes de configuración (inyectadas vía variable de entorno)
 const API_KEY = process.env.GOOGLE_API_KEY
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID
-const SCOPES = 'https://www.googleapis.com/auth/drive.file'
+const SCOPES = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly'
 // Discovery doc para API de Drive
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'
 
@@ -118,11 +118,13 @@ export function useGoogleDrive() {
     const view = new window.google.picker.View(window.google.picker.ViewId.DOCS)
     view.setMimeTypes(mimeTypes)
 
+    const appId = CLIENT_ID.split('-')[0]
     const picker = new window.google.picker.PickerBuilder()
       .enableFeature(window.google.picker.Feature.NAV_HIDDEN)
       .setDeveloperKey(API_KEY)
-      .setAppId(CLIENT_ID)
+      .setAppId(appId)
       .setOAuthToken(accessToken)
+      .setOrigin(window.location.protocol + '//' + window.location.host)
       .addView(view)
       // .addView(new window.google.picker.DocsUploadView()) // Opción para subir, si se desea
       .setCallback(async (data) => {
@@ -153,6 +155,8 @@ export function useGoogleDrive() {
       .build()
     picker.setVisible(true)
   }
+
+
 
   return {
     openDrivePicker,

@@ -145,7 +145,18 @@ export const usePostulacionStore = defineStore('postulacion', {
       const docs = conv?.documentos_requeridos || conv?.documentosRequeridos || []
 
       if (docs.length > 0) {
-        this.documentosRequeridos = docs.map(doc => ({
+        // Deduplicar por ID para evitar campos repetidos
+        const uniqueDocs = []
+        const seenIds = new Set()
+
+        docs.forEach(doc => {
+            if (!seenIds.has(doc.id)) {
+                seenIds.add(doc.id)
+                uniqueDocs.push(doc)
+            }
+        })
+
+        this.documentosRequeridos = uniqueDocs.map(doc => ({
           id: doc.id,
           nombre: doc.nombre,
           descripcion: doc.descripcion,
@@ -228,7 +239,17 @@ export const usePostulacionStore = defineStore('postulacion', {
 
         if (data.documentos_requeridos || data.documentosRequeridos) {
            const docs = data.documentos_requeridos || data.documentosRequeridos
-           this.documentosRequeridos = docs.map(doc => ({
+           // Deduplicar
+           const uniqueDocs = []
+           const seenIds = new Set()
+           docs.forEach(doc => {
+               if (!seenIds.has(doc.id)) {
+                   seenIds.add(doc.id)
+                   uniqueDocs.push(doc)
+               }
+           })
+
+           this.documentosRequeridos = uniqueDocs.map(doc => ({
              ...doc,
              campos: typeof doc.campos === 'string' ? JSON.parse(doc.campos) : doc.campos,
              permite_multiples: doc.permite_multiples == 1 || doc.permite_multiples === true,
@@ -287,16 +308,27 @@ export const usePostulacionStore = defineStore('postulacion', {
           this.reconocimientos = p.reconocimientos || []
 
           // Cargar documentos dinámicos existentes (si coinciden con los requeridos)
+          // Cargar documentos dinámicos existentes (si coinciden con los requeridos)
           if (p.documentos && p.documentos.length > 0) {
+            // 1. Agrupar por tipo y quedarse con el MÁS RECIENTE (mayor ID)
+            const docsMap = {}
             p.documentos.forEach(doc => {
+                const cur = docsMap[doc.tipo_documento_id]
+                if (!cur || doc.id > cur.id) {
+                    docsMap[doc.tipo_documento_id] = doc
+                }
+            })
+
+            // 2. Asignar al estado (LIMPIANDO duplicados previos para asegurar solo uno)
+            Object.values(docsMap).forEach(doc => {
               const tipoId = doc.tipo_documento_id
-              // Si el tipo está en el estado 'documentos' (inicializado por seleccionarConvocatoria)
+              // Solo si este tipo de documento es requerido en la convocatoria actual
               if (this.documentos[tipoId]) {
-                this.documentos[tipoId].push({
-                  id: doc.id, // ID del registro existente
-                  archivo: doc.archivo_pdf, // Ruta al PDF
+                this.documentos[tipoId] = [{ // Reemplazamos el array completo
+                  id: doc.id,
+                  archivo: doc.archivo_pdf,
                   metadatos: typeof doc.metadatos === 'string' ? JSON.parse(doc.metadatos) : (doc.metadatos || {})
-                })
+                }]
               }
             })
           }

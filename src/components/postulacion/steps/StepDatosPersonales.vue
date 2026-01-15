@@ -50,7 +50,9 @@
                         </div>
                     </div>
                 </div>
-                <q-file v-model="store.postulante.foto_perfil" filled label="Subir fotografía (Rostro)"
+                <q-file :model-value="getFileValue(store.postulante.foto_perfil)"
+                    @update:model-value="(val) => store.postulante.foto_perfil = val"
+                    filled label="Subir fotografía (Rostro)"
                     accept="image/*,application/pdf" max-file-size="5242880" @rejected="onRejected" class="full-width"
                     :rules="[val => (!!val || !!existingPhotoUrl) || 'Foto requerida']">
                     <template v-slot:prepend>
@@ -151,10 +153,11 @@
                             </div>
                         </div>
                         <GoogleDriveUploadBtn class="drive-btn" @file-selected="(f) => store.setDocumento(req.id, index, f)" />
-                        <q-file :ref="el => setPersonalFileRef(el, req.id)" :model-value="item.archivo"
+                        <q-file :ref="el => setPersonalFileRef(el, req.id)"
+                            :model-value="getFileValue(item.archivo)"
                             @update:model-value="(f) => store.setDocumento(req.id, index, f)" accept=".pdf"
                             max-file-size="2097152" @rejected="onRejected" class="hidden"
-                            :rules="req.obligatorio ? [val => !!val || 'Requerido'] : []" />
+                            :rules="req.obligatorio ? [val => (!!val || !!item.archivo) || 'Requerido'] : []" />
                     </div>
                 </div>
             </template>
@@ -268,6 +271,10 @@ const onRejected = () => {
         type: 'negative',
         message: 'Archivo rechazado: Verifique el formato y tamaño (máx 2MB)'
     })
+}
+
+const getFileValue = (val) => {
+    return (val instanceof File) ? val : null
 }
 
 const validateAndNext = async () => {

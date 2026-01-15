@@ -91,7 +91,7 @@
                 v-ripple
                 @click="triggerFilePicker(req.id, index)">
 
-                <div class="absolute right-4 top-4 z-10 opacity-0 group-hover/file:opacity-100 transition-opacity" @click.stop>
+                <div class="absolute right-4 top-4 z-10" @click.stop>
                   <GoogleDriveUploadBtn @file-selected="(f) => store.setDocumento(req.id, index, f)" />
                 </div>
 
@@ -105,7 +105,7 @@
                   </div>
                 </div>
 
-                <q-file :ref="el => setFileRef(el, req.id, index)" :model-value="item.archivo"
+                <q-file :ref="el => setFileRef(el, req.id, index)" :model-value="getFileValue(item.archivo)"
                   @update:model-value="(f) => store.setDocumento(req.id, index, f)" class="hidden" accept=".pdf"
                   max-file-size="2097152" @rejected="onRejected" />
               </div>
@@ -220,6 +220,10 @@ const onRejected = () => {
     type: 'negative',
     message: 'Archivo inválido o excede el tamaño máximo (2MB)'
   })
+}
+
+const getFileValue = (val) => {
+    return (val instanceof File) ? val : null
 }
 
 const validateAndNext = async () => {

@@ -781,7 +781,10 @@
                 <div class="font-bold text-lg md:text-xl text-black mb-2 uppercase">Universidad Técnica Privada Cosmos</div>
                 <div class="font-bold text-lg text-purple-900 uppercase">
                     {{
+                      convocatorias.find(c => c.id === currentConvocatoriaContextId?.value)?.titulo ||
+                      convocatorias.find(c => c.id === currentConvocatoriaContextId)?.titulo ||
                       convocatorias.find(c => c.id === filtroConvocatoria)?.titulo ||
+                      selectedPostulante?.postulaciones?.find(p => p.oferta?.convocatoria_id === currentConvocatoriaContextId || p.oferta?.convocatoria?.id === currentConvocatoriaContextId)?.oferta?.convocatoria?.titulo ||
                       selectedPostulante?.postulaciones?.[0]?.oferta?.convocatoria?.titulo ||
                       'SELECCIÓN DOCENTE'
                     }}
@@ -850,7 +853,12 @@
                                 Ver Documento Digital
                              </a>
                              <span v-else class="text-gray-400 italic text-xs">No adjuntado</span>
-                             <q-icon name="qr_code_2" size="40px" />
+
+                             <qrcode-vue
+                                v-if="docsPorCategoria['personal']?.find(d => d.tipo_documento?.nombre?.toLowerCase().includes('cedula') || d.tipo_documento?.nombre?.toLowerCase().includes('ci'))"
+                                :value="getStorageUrl(docsPorCategoria['personal'].find(d => d.tipo_documento?.nombre?.toLowerCase().includes('cedula') || d.tipo_documento?.nombre?.toLowerCase().includes('ci')).archivo_pdf)"
+                                :size="64" level="M" render-as="svg" />
+                             <q-icon v-else name="qr_code_2" size="40px" class="text-gray-300" />
                         </div>
                     </td>
                   </tr>
@@ -871,18 +879,24 @@
                      <td class="border border-purple-800 p-2 text-black text-xs">{{ selectedPostulante?.email || '-' }}</td>
                   </tr>
                   <!-- Otros docs personales (Carta, CV, etc) EXCLUYENDO Cédula -->
-                  <tr v-for="doc in docsPorCategoria['personal']?.filter(d =>
-                        !d.tipo_documento?.nombre?.toLowerCase().includes('cedula') &&
-                        !d.tipo_documento?.nombre?.toLowerCase().includes('ci')
-                      )" :key="doc.id">
-                     <td class="border border-purple-800 p-1 px-2 font-bold text-black text-xs uppercase">{{ doc.tipo_documento?.nombre }}:</td>
+                  <!-- Otros docs personales (Carta, CV, etc) EXCLUYENDO Cédula -->
+                  <tr v-for="req in personalDocsRequeridos?.filter(r => {
+                        const name = r.nombre?.toLowerCase() || ''
+                        const normalized = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                        // Exclude CI/Cedula aggressively to avoid duplication with hardcoded row
+                        return !normalized.includes('cedula') && !normalized.includes('ci')
+                      })" :key="req.id">
+                     <td class="border border-purple-800 p-1 px-2 font-bold text-black text-xs uppercase">{{ req.nombre }}:</td>
                      <td class="border border-purple-800 p-1 px-2">
-                        <div class="flex items-center justify-between">
-                             <a @click="previewPDF(doc.archivo_pdf, doc.tipo_documento?.nombre)" class="text-blue-600 underline cursor-pointer text-xs">
+                        <div v-if="getPostulanteDoc(req.id)" class="flex items-center justify-between">
+                             <a @click="previewPDF(getPostulanteDoc(req.id).archivo_pdf, req.nombre)" class="text-blue-600 underline cursor-pointer text-xs">
                                 Ver Documento
                              </a>
-                             <qrcode-vue v-if="doc.archivo_pdf" :value="getStorageUrl(doc.archivo_pdf)" :size="30" level="L" render-as="svg" />
-                             <q-icon v-else name="qr_code_2" size="30px" color="grey-4" />
+                             <qrcode-vue :value="getStorageUrl(getPostulanteDoc(req.id).archivo_pdf)" :size="30" level="L" render-as="svg" />
+                        </div>
+                        <div v-else class="flex items-center justify-between">
+                             <span class="text-gray-400 italic text-xs">No adjuntado</span>
+                             <q-icon name="qr_code_2" size="30px" color="grey-4" />
                         </div>
                      </td>
                   </tr>
@@ -1421,35 +1435,59 @@ const docsPorCategoria = computed(() => {
   }, {})
 })
 
-const expedienteSections = computed(() => {
-  // 1. Obtener la definición de documentos requeridos (Contexto Convocatoria)
+// 1. Obtener TODOS los documentos requeridos (Centralizado)
+// 1. Obtener TODOS los documentos requeridos (Centralizado)
+const allDocumentosRequeridos = computed(() => {
   let requeridos = []
 
-  // Determinar ID de convocatoria: Directo del filtro o inferido del postulante
-  let convId = filtroConvocatoria.value
+  // Determinar ID de convocatoria:
+  // 1. Contexto explícito (clic en "Ver Expediente" desde una convocatoria específica)
+  let convId = currentConvocatoriaContextId.value
+
+  // 2. Filtro global (si se usa la tabla general de postulaciones)
+  if (!convId) convId = filtroConvocatoria.value
+
+  // 3. Inferencia (Fallback, usa la primera postulación encontrada)
   if (!convId && selectedPostulante.value?.postulaciones?.length > 0) {
-      // Usar la convocatoria de la primera postulación encontrada
       convId = selectedPostulante.value.postulaciones[0].oferta?.convocatoria_id || selectedPostulante.value.postulaciones[0].oferta?.convocatoria?.id
   }
 
   // Buscar la convocatoria en la lista cargada (si existe)
   if (convId) {
-     const conv = convocatorias.value.find(c => c.id === convId)
-     // Flexibilidad con la propiedad de documentos (backend puede devolver variaciones)
-     const docs = conv?.documentos || conv?.documentos_requeridos || conv?.documentosRequeridos
+     let docs = []
+
+     // 1. Intentar desde la lista general de convocatorias
+     const convList = convocatorias.value.find(c => c.id === convId)
+     if (convList) docs = convList.documentos || convList.documentos_requeridos || convList.documentosRequeridos || []
+
+     // 2. Si no hay docs, buscar PROFUNDAMENTE en la data del postulante (postulaciones -> oferta -> convocatoria)
+     // Esto corrige el caso donde la lista 'convocatorias' es un resumen sin relaciones, pero 'selectedPostulante' trae el árbol completo
+     if ((!docs || docs.length === 0) && selectedPostulante.value?.postulaciones) {
+         const activePost = selectedPostulante.value.postulaciones.find(p =>
+            p.oferta?.convocatoria_id === convId || p.oferta?.convocatoria?.id === convId
+         )
+         const deepConv = activePost?.oferta?.convocatoria
+         if (deepConv) {
+             docs = deepConv.documentos || deepConv.documentos_requeridos || deepConv.documentosRequeridos || []
+         }
+     }
+
      // Solo usar si tiene documentos definidos
      if (docs && docs.length > 0) {
         requeridos = docs
+     } else if (tiposDocumento.value && tiposDocumento.value.length > 0) {
+         // Si la convocatoria no trae sus documentos, usar TODOS los documento globales como fallback
+         // Esto es importante para que NO salgan tablas vacías si el backend no populó la relación
+         requeridos = tiposDocumento.value
      }
   }
 
   // 2. FALLBACK ROBUSTO: Si no se encontraron requisitos específicos, usar TODOS los tipos de documento definidos en el sistema.
-  // Esto asegura que siempre se muestren las secciones estándar (Académica, Experiencia, etc.) para pintar la data.
   if (requeridos.length === 0 && tiposDocumento.value && tiposDocumento.value.length > 0) {
       requeridos = tiposDocumento.value
   }
 
-  // 3. Fallback final: construir "tipos" basados en lo que el postulante tiene subido (si todo lo demás falla)
+  // 3. Fallback final: construir "tipos" basados en lo que el postulante tiene subido
   if (requeridos.length === 0 && selectedPostulante.value?.documentos) {
      const map = new Map()
      selectedPostulante.value.documentos.forEach(d => {
@@ -1462,9 +1500,16 @@ const expedienteSections = computed(() => {
 
   // Ordenar por campo 'orden'
   requeridos.sort((a, b) => (a.orden || 0) - (b.orden || 0))
+  return requeridos
+})
 
-  // FILTRAR: Excluir documentos personales (ya mostrados en sección I)
-  requeridos = requeridos.filter(r => r.categoria !== 'personal')
+const personalDocsRequeridos = computed(() => {
+    return allDocumentosRequeridos.value.filter(r => r.categoria === 'personal')
+})
+
+const expedienteSections = computed(() => {
+  // FILTRAR: Excluir documentos personales para las secciones del expediente (ya mostrados en sección I)
+  const requeridos = allDocumentosRequeridos.value.filter(r => r.categoria !== 'personal')
 
   // 2. Construir la estructura de secciones
   return requeridos.map((tipo) => {
@@ -1762,73 +1807,82 @@ const descargarExpedienteCompleto = async () => {
 
   downloadingExpediente.value = true
   try {
-    // 1. Capturar el elemento visual visualizado
-    const element = document.getElementById('expediente-visual')
-    if (!element) throw new Error('No se encontró el visualizador del expediente')
+    // 1. Identificar el contenedor principal
+    const visualContainer = document.querySelector('#expediente-visual > div')
+    if (!visualContainer) throw new Error('No se encontró el contenido del expediente')
 
-    // Configurar html2canvas
-    const options = {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-        x: 0,
-        y: 0
+    // 2. Identificar los bloques lógicos (hijos directos: Header, Datos, Secciones dinámicas, Footer)
+    const blocks = Array.from(visualContainer.children)
+    if (blocks.length === 0) throw new Error('No hay secciones para generar')
+
+    // 3. Configurar PDF (Carta, Landscape, con márgenes)
+    // 'letter' es 215.9mm x 279.4mm.
+    // Landscape: 279.4mm (ancho) x 215.9mm (alto)
+    const pdf = new jsPDF('l', 'mm', 'letter')
+    const PageWidth = pdf.internal.pageSize.getWidth() // ~279
+    const PageHeight = pdf.internal.pageSize.getHeight() // ~216
+    const Margin = 15
+    const ContentWidth = PageWidth - (Margin * 2)
+    const ContentHeight = PageHeight - (Margin * 2)
+
+    let cursorY = Margin
+
+    $q.loading.show({ message: 'Procesando páginas...' })
+
+    // 4. Iterar y capturar cada bloque
+    for (const block of blocks) {
+        // Ignorar bloques vacíos o invisibles
+        if (block.offsetHeight === 0) continue
+
+        // Capturar bloque
+        const canvas = await html2canvas(block, {
+            scale: 2, // Mejor calidad
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+        })
+
+        const imgData = canvas.toDataURL('image/png')
+
+        // Calcular dimensiones en el PDF manteniendo el aspecto
+        const imgProps = pdf.getImageProperties(imgData)
+        const pdfImgHeight = (imgProps.height * ContentWidth) / imgProps.width
+
+        // 5. Verificar si cabe en la página actual
+        if (cursorY + pdfImgHeight > Margin + ContentHeight) {
+            // Si no cabe y NO es la primera posición (para evitar loops si un bloque es gigante), nueva página
+            if (cursorY > Margin) {
+                pdf.addPage()
+                cursorY = Margin
+            }
+        }
+
+        // 6. Agregar imagen
+        pdf.addImage(imgData, 'PNG', Margin, cursorY, ContentWidth, pdfImgHeight)
+
+        // Mover cursor
+        cursorY += pdfImgHeight + 5 // +5mm de padding entre bloques
     }
 
-    // Forzar scroll top temporalmente
-    const originalScrollTop = element.scrollTop
-    element.scrollTop = 0
-
-    const canvas = await html2canvas(element, options)
-
-    // Restaurar scroll
-    element.scrollTop = originalScrollTop
-
-    const imgData = canvas.toDataURL('image/png')
-
-    // 2. Crear PDF (A4)
-    const pdf = new jsPDF('p', 'mm', 'a4')
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = pdf.internal.pageSize.getHeight()
-
-    const imgProps = pdf.getImageProperties(imgData)
-    const imgHeight = (imgProps.height * pdfWidth) / imgProps.width
-    let heightLeft = imgHeight
-    let position = 0
-
-    // Primera página
-    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight)
-    heightLeft -= pdfHeight
-    position -= pdfHeight
-
-    // Páginas siguientes
-    while (heightLeft > 0) {
-      pdf.addPage()
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight)
-      heightLeft -= pdfHeight
-      position -= pdfHeight
-    }
-
-    // 3. Descargar
+    // 7. Descargar
     pdf.save(`Expediente_${selectedPostulante.value.ci}_Completo.pdf`)
 
     $q.notify({
       type: 'positive',
-      message: 'Descarga exitosa (Vista Previa)',
+      message: 'Expediente generado correctamente',
       icon: 'check_circle'
     })
 
   } catch (error) {
-    console.error('Error visual expediente:', error)
+    console.error('Error generación PDF:', error)
     $q.notify({
       type: 'negative',
-      message: 'Error al generar el PDF visual',
+      message: 'Error al generar el PDF',
       caption: error.message
     })
   } finally {
     downloadingExpediente.value = false
+    $q.loading.hide()
   }
 }
 
@@ -2138,6 +2192,10 @@ const isObligatorio = (tipoId) => {
   return doc?.obligatorio ?? true
 }
 
+const getPostulanteDoc = (reqTypeId) => {
+    return selectedPostulante.value?.documentos?.find(d => d.tipo_documento_id === reqTypeId || d.tipo_documento?.id === reqTypeId)
+}
+
 const eliminarConvocatoria = async (item) => {
   $q.dialog({
     title: 'Confirmar eliminación',
@@ -2239,7 +2297,13 @@ const cambiarEstado = async (post, estado) => {
   try { await api.patch(`/admin/postulaciones/${post.id}/estado`, { estado }); post.estado = estado; $q.notify({ type: 'positive', message: 'Estado actualizado' }) } catch { $q.notify({ type: 'negative', message: 'Error al actualizar' }) }
 }
 
+const currentConvocatoriaContextId = ref(null)
+
 const verExpediente = async (post) => {
+  // Capture Context: Capture the specific convocatoria ID where this postulation belongs
+  // This fixes the issue where an applicant with multiple postulations would default to the wrong one
+  currentConvocatoriaContextId.value = post.oferta?.convocatoria_id || post.oferta?.convocatoria?.id || post.convocatoria_id
+
   try {
     const { data } = await api.get(`/admin/postulantes/${post.postulante_id}/expediente`)
     selectedPostulante.value = data
