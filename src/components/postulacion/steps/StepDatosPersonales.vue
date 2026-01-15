@@ -12,12 +12,6 @@
                 información.
             </div>
 
-            <div class="col-12 text-blue-900 bg-blue-50 p-3 rounded-lg q-mb-sm text-center"
-                v-if="store.esPostulanteExistente">
-                <q-icon name="check_circle" color="positive" /> Datos cargados automáticamente. Verifique su
-                información.
-            </div>
-
             <!-- 1. Nombres -->
             <div class="col-12 col-md-6">
                 <q-input v-model="store.postulante.nombres" filled label="Nombres *"
@@ -56,7 +50,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- TODO: Restaurar GoogleDriveUploadBtn si es necesario -->
                 <q-file v-model="store.postulante.foto_perfil" filled label="Subir fotografía (Rostro)"
                     accept="image/*,application/pdf" max-file-size="5242880" @rejected="onRejected" class="full-width"
                     :rules="[val => (!!val || !!existingPhotoUrl) || 'Foto requerida']">
@@ -134,71 +127,37 @@
                 </q-input>
             </div>
 
-            <!-- Documentos Generales Section -->
-            <div class="col-12">
+            <!-- Los documentos como Carta, CV y CI ahora se manejan dinámicamente según la convocatoria -->
+            <div class="col-12" v-if="personalRequirements.length > 0">
                 <div class="text-h6 q-mb-md flex items-center gap-2" style="color: #f59e0b;">
                     <q-icon name="folder_open" size="28px" />
-                    Documentos Generales
+                    Documentos Requeridos
                 </div>
             </div>
 
-            <!-- Carta de Postulación -->
-            <div class="col-12 col-md-4">
-                <div class="document-card">
-                    <div class="document-title">Carta de Postulación <span class="text-red">*</span></div>
-                    <div class="document-dropzone" @click="$refs.cartaInput.$el.querySelector('input').click()">
-                        <q-icon name="cloud_upload" size="40px" class="text-amber-500" />
-                        <div class="text-amber-600 font-medium mt-2">Click para subir</div>
-                        <div class="text-grey-5 text-xs">PDF · Max 2MB</div>
-                        <div v-if="store.postulante.carta_postulacion" class="uploaded-file">
-                            <q-icon name="check_circle" color="positive" size="16px" />
-                            {{ store.postulante.carta_postulacion?.name || 'Archivo cargado' }}
+            <template v-for="req in personalRequirements" :key="req.id">
+                <div v-for="(item, index) in store.documentos[req.id]" :key="req.id + '-' + index" class="col-12 col-md-4">
+                    <div class="document-card group/doc relative h-full">
+                        <div class="document-title truncate pr-8" :title="req.nombre">
+                            {{ req.nombre }} <span v-if="req.obligatorio" class="text-red">*</span>
                         </div>
-                    </div>
-                    <GoogleDriveUploadBtn class="drive-btn" @file-selected="(f) => store.postulante.carta_postulacion = f" />
-                    <q-file ref="cartaInput" v-model="store.postulante.carta_postulacion" accept=".pdf,.doc,.docx"
-                        max-file-size="2097152" @rejected="onRejected" class="hidden" />
-                </div>
-            </div>
-
-            <!-- Curriculum Vitae -->
-            <div class="col-12 col-md-4">
-                <div class="document-card">
-                    <div class="document-title">Curriculum Vitae (CV) <span class="text-red">*</span></div>
-                    <div class="document-dropzone" @click="$refs.cvInput.$el.querySelector('input').click()">
-                        <q-icon name="cloud_upload" size="40px" class="text-amber-500" />
-                        <div class="text-amber-600 font-medium mt-2">Click para subir</div>
-                        <div class="text-grey-5 text-xs">PDF · Max 2MB</div>
-                        <div v-if="store.postulante.curriculum_vitae" class="uploaded-file">
-                            <q-icon name="check_circle" color="positive" size="16px" />
-                            {{ store.postulante.curriculum_vitae?.name || 'Archivo cargado' }}
+                        <div class="document-dropzone" v-ripple @click="triggerPersonalFilePicker(req.id)">
+                            <q-icon :name="req.icono || 'cloud_upload'" size="40px" class="text-amber-500 transform group-hover/doc:scale-110 transition-transform" />
+                            <div class="text-amber-600 font-medium mt-2">Click para subir</div>
+                            <div class="text-grey-5 text-xs">PDF · Max 2MB</div>
+                            <div v-if="item.archivo" class="uploaded-file">
+                                <q-icon name="check_circle" color="positive" size="16px" />
+                                {{ item.archivo.name || 'Archivo cargado' }}
+                            </div>
                         </div>
+                        <GoogleDriveUploadBtn class="drive-btn" @file-selected="(f) => store.setDocumento(req.id, index, f)" />
+                        <q-file :ref="el => setPersonalFileRef(el, req.id)" :model-value="item.archivo"
+                            @update:model-value="(f) => store.setDocumento(req.id, index, f)" accept=".pdf"
+                            max-file-size="2097152" @rejected="onRejected" class="hidden"
+                            :rules="req.obligatorio ? [val => !!val || 'Requerido'] : []" />
                     </div>
-                    <GoogleDriveUploadBtn class="drive-btn" @file-selected="(f) => store.postulante.curriculum_vitae = f" />
-                    <q-file ref="cvInput" v-model="store.postulante.curriculum_vitae" accept=".pdf"
-                        max-file-size="2097152" @rejected="onRejected" class="hidden" />
                 </div>
-            </div>
-
-            <!-- Cédula de Identidad (documento) -->
-            <div class="col-12 col-md-4">
-                <div class="document-card">
-                    <div class="document-title">Cédula de Identidad <span class="text-red">*</span></div>
-                    <div class="document-dropzone" @click="$refs.ciDocInput.$el.querySelector('input').click()">
-                        <q-icon name="cloud_upload" size="40px" class="text-amber-500" />
-                        <div class="text-amber-600 font-medium mt-2">Click para subir</div>
-                        <div class="text-grey-5 text-xs">PDF o Imagen · Max 2MB</div>
-                        <div v-if="store.postulante.ci_documento" class="uploaded-file">
-                            <q-icon name="check_circle" color="positive" size="16px" />
-                            {{ store.postulante.ci_documento?.name || 'Archivo cargado' }}
-                        </div>
-                    </div>
-                    <GoogleDriveUploadBtn class="drive-btn" mime-types="application/pdf,image/*"
-                        @file-selected="(f) => store.postulante.ci_documento = f" />
-                    <q-file ref="ciDocInput" v-model="store.postulante.ci_documento" accept=".pdf,image/*"
-                        max-file-size="2097152" @rejected="onRejected" class="hidden" />
-                </div>
-            </div>
+            </template>
         </div>
 
 
@@ -212,7 +171,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, reactive, onMounted } from 'vue'
 import { usePostulacionStore } from 'stores/postulacion-store'
 import { useQuasar } from 'quasar'
 import GoogleDriveUploadBtn from 'src/components/common/GoogleDriveUploadBtn.vue'
@@ -223,6 +182,33 @@ const $q = useQuasar()
 const form = ref(null)
 
 const emit = defineEmits(['next', 'prev'])
+
+// Lógica para documentos dinámicos de categoría Personal
+const personalRequirements = computed(() => {
+    return store.documentosRequeridos.filter(req => req.categoria === 'personal')
+})
+
+const personalFileRefs = reactive({})
+const setPersonalFileRef = (el, typeId) => {
+    if (el) personalFileRefs[typeId] = el
+}
+
+const triggerPersonalFilePicker = (typeId) => {
+    const ref = personalFileRefs[typeId]
+    if (ref) {
+        if (typeof ref.pickFiles === 'function') ref.pickFiles()
+        else ref.$el?.click() || ref.click?.()
+    }
+}
+
+onMounted(() => {
+  // Asegurar que existan los slots para los documentos personales requeridos
+  personalRequirements.value.forEach(req => {
+    if (!store.documentos[req.id] || store.documentos[req.id].length === 0) {
+      store.agregarDocumentoDinamico(req.id)
+    }
+  })
+})
 
 // Departamentos de Bolivia para el selector de Expedido
 const departamentosBolivia = [
@@ -241,7 +227,7 @@ const existingPhotoUrl = computed(() => {
     if (store.esPostulanteExistente && typeof store.postulante.foto_perfil === 'string') {
         const storageBaseUrl = process.env.PROD
             ? 'https://api.sipo.xpertiaplus.com/storage/'
-            : 'http://localhost:8081/storage/'
+            : 'http://localhost:8000/storage/'
         return storageBaseUrl + store.postulante.foto_perfil
     }
     return null

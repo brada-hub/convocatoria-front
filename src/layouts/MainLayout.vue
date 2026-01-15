@@ -135,7 +135,7 @@ const adminMenuItems = computed(() => {
     { id: 'gestion-convocatorias', label: 'Ver Postulantes', icon: 'groups' },
     { id: 'sedes', label: 'Sedes', icon: 'apartment' },
     { id: 'cargos', label: 'Cargos', icon: 'badge' },
-    { id: 'niveles', label: 'Niveles Acad.', icon: 'school' },
+    { id: 'tipos-documento', label: 'Tipos Documento', icon: 'folder_special' },
     { id: 'postulaciones', label: 'Postulaciones', icon: 'people_alt' },
   ]
 

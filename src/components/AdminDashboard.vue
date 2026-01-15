@@ -115,10 +115,12 @@
         <AdminCargos />
       </div>
 
-      <!-- VISTA: NIVELES -->
-      <div v-show="activeTab === 'niveles'">
-        <AdminNiveles />
+      <!-- VISTA: TIPOS DE DOCUMENTO -->
+      <div v-show="activeTab === 'tipos-documento'">
+        <TiposDocumentoManager />
       </div>
+
+
 
       <!-- VISTA: USUARIOS -->
       <div v-if="activeTab === 'usuarios' && isAdmin">
@@ -341,9 +343,7 @@
                 <div class="bg-blue-50 p-4 rounded-xl mb-8 border border-blue-100 flex items-start gap-3">
                   <q-icon name="info" class="text-blue-600 mt-0.5" size="20px" />
                   <div class="text-sm text-blue-800">
-                    Seleccione una Sede y uno o varios Cargos para asignarlos en bloque. Puede crear nuevas
-                    sedes o
-                    cargos si no existen.
+                    Seleccione una o varias Sedes y uno o varios Cargos para asignarlos en bloque. Puede crear nuevas sedes o cargos si no existen.
                   </div>
                 </div>
 
@@ -356,8 +356,8 @@
                     <!-- Sede -->
                     <div class="md:col-span-4 flex gap-2 items-start">
                       <div class="flex-1">
-                        <q-select v-model="tempOferta.sede_id" :options="sedesOptions" label="Sede" outlined dense
-                          bg-color="white" emit-value map-options class="w-full">
+                        <q-select v-model="tempOferta.sedes_ids" :options="sedesOptions" label="Sedes" outlined dense
+                          bg-color="white" emit-value map-options multiple use-chips stack-label class="w-full">
                           <template v-slot:no-option>
                             <q-item clickable @click="showQuickSede = true">
                               <q-item-section class="text-blue-600"><q-icon name="add" /> Crear nueva
@@ -482,37 +482,71 @@
 
                 <!-- Lista de Tipos de Documento -->
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                  <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                  <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                     <h4 class="font-bold text-gray-700">Tipos de Documento Disponibles</h4>
+                    <q-btn flat round color="primary" icon="add" size="sm" @click="showQuickTipoDocumento = true">
+                      <q-tooltip>Crear nuevo tipo de documento</q-tooltip>
+                    </q-btn>
                   </div>
 
                   <div class="divide-y divide-gray-100">
-                    <div v-for="tipo in tiposDocumento" :key="tipo.id"
-                      class="grid grid-cols-12 items-center p-4 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 gap-4">
-
-                      <!-- Col 1-9: Checkbox + Info -->
-                      <div class="col-span-9 flex items-center gap-4">
-                        <q-checkbox :model-value="isDocumentoSelected(tipo.id)"
-                          @update:model-value="toggleDocumento(tipo.id)" color="primary" />
-                        <div class="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0">
-                          <q-icon :name="tipo.icono || 'description'" size="20px" />
-                        </div>
-                        <div>
-                          <div class="font-medium text-gray-900">{{ tipo.nombre }}</div>
-                          <div class="text-xs text-gray-500">{{ tipo.descripcion }}</div>
-                        </div>
-                      </div>
-
-                      <!-- Col 10-12: Toggle (Aligned) -->
-                      <div class="col-span-3 flex justify-end">
-                        <div v-if="isDocumentoSelected(tipo.id)"
-                          class="flex items-center gap-2 bg-orange-50 px-3 py-1 rounded-full">
-                          <span class="text-xs text-orange-800 font-medium">¿Obligatorio?</span>
-                          <q-toggle :model-value="isObligatorio(tipo.id)"
-                            @update:model-value="toggleObligatorio(tipo.id)" color="orange" size="sm" />
-                        </div>
-                      </div>
+                    <!-- SECCIÓN: DOCUMENTOS PERSONALES -->
+                    <div class="px-6 py-3 bg-amber-50/50 flex items-center gap-2">
+                       <q-icon name="person" color="amber-9" size="18px" />
+                       <span class="text-xs font-bold text-amber-900 uppercase tracking-wider">Archivos para Datos Personales</span>
                     </div>
+                    <template v-for="tipo in filteredTiposDocumento.filter(t => t.categoria === 'personal')" :key="'p-'+tipo.id">
+                      <div class="grid grid-cols-12 items-center p-4 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 gap-4">
+                        <div class="col-span-9 flex items-center gap-4">
+                          <q-checkbox :model-value="isDocumentoSelected(tipo.id)"
+                            @update:model-value="toggleDocumento(tipo.id)" color="primary" />
+                          <div class="p-2 bg-amber-50 text-amber-600 rounded-lg shrink-0">
+                            <q-icon :name="tipo.icono || 'person'" size="20px" />
+                          </div>
+                          <div>
+                            <div class="font-medium text-gray-900">{{ tipo.nombre }}</div>
+                            <div class="text-xs text-gray-500">{{ tipo.descripcion }}</div>
+                          </div>
+                        </div>
+                        <div class="col-span-3 flex justify-end">
+                          <div v-if="isDocumentoSelected(tipo.id)"
+                            class="flex items-center gap-2 bg-orange-50 px-3 py-1 rounded-full">
+                            <span class="text-xs text-orange-800 font-medium">¿Obligatorio?</span>
+                            <q-toggle :model-value="isObligatorio(tipo.id)"
+                              @update:model-value="toggleObligatorio(tipo.id)" color="orange" size="sm" />
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- SECCIÓN: DOCUMENTOS DE EXPEDIENTE -->
+                    <div class="px-6 py-3 bg-indigo-50/50 flex items-center gap-2 mt-2">
+                       <q-icon name="folder_special" color="indigo-9" size="18px" />
+                       <span class="text-xs font-bold text-indigo-900 uppercase tracking-wider">Documentos del Expediente / Hoja de Vida</span>
+                    </div>
+                    <template v-for="tipo in filteredTiposDocumento.filter(t => t.categoria !== 'personal')" :key="'e-'+tipo.id">
+                      <div class="grid grid-cols-12 items-center p-4 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 gap-4">
+                        <div class="col-span-9 flex items-center gap-4">
+                          <q-checkbox :model-value="isDocumentoSelected(tipo.id)"
+                            @update:model-value="toggleDocumento(tipo.id)" color="primary" />
+                          <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg shrink-0">
+                            <q-icon :name="tipo.icono || 'description'" size="20px" />
+                          </div>
+                          <div>
+                            <div class="font-medium text-gray-900">{{ tipo.nombre }}</div>
+                            <div class="text-xs text-gray-500">{{ tipo.descripcion }}</div>
+                          </div>
+                        </div>
+                        <div class="col-span-3 flex justify-end">
+                          <div v-if="isDocumentoSelected(tipo.id)"
+                            class="flex items-center gap-2 bg-orange-50 px-3 py-1 rounded-full">
+                            <span class="text-xs text-orange-800 font-medium">¿Obligatorio?</span>
+                            <q-toggle :model-value="isObligatorio(tipo.id)"
+                              @update:model-value="toggleObligatorio(tipo.id)" color="orange" size="sm" />
+                          </div>
+                        </div>
+                      </div>
+                    </template>
                   </div>
 
                   <div v-if="tiposDocumento.length === 0" class="p-8 text-center text-gray-400 italic">
@@ -595,10 +629,10 @@
               <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
                 <!-- Sede Selection -->
                 <div class="md:col-span-4 space-y-1.5">
-                  <label class="text-xs font-bold text-gray-500 uppercase ml-1">Sede</label>
+                  <label class="text-xs font-bold text-gray-500 uppercase ml-1">Sedes</label>
                   <div class="flex gap-2">
-                    <q-select v-model="nuevaOferta.sede_id" :options="sedesOptions" outlined dense bg-color="white"
-                      emit-value map-options class="flex-1" placeholder="Seleccione Sede">
+                    <q-select v-model="nuevaOferta.sedes_ids" :options="sedesOptions" label="Sedes" outlined dense bg-color="white"
+                      emit-value map-options multiple use-chips stack-label class="flex-1" placeholder="Seleccione Sedes">
                       <template v-slot:no-option>
                         <q-item clickable @click="showQuickSede = true" class="text-blue-600 font-medium">
                           <q-item-section>+ Crear nueva sede</q-item-section>
@@ -736,129 +770,211 @@
 
         <!-- Layout dividido: Datos a la izquierda, Preview a la derecha -->
         <div class="flex-1 flex overflow-hidden">
-          <!-- Panel Izquierdo: Tablas de datos - AHORA CON SCROLL -->
-          <div class="w-full md:w-1/2 overflow-y-auto p-6 border-r border-gray-200" style="max-height: calc(100vh - 88px);">
-            <div class="space-y-6 pb-6">
-              <!-- Formación Académica -->
-              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="school"
-                    class="text-blue-500" /> Formación Académica</h3>
-                <q-table :rows="selectedPostulante?.formaciones || []" :columns="columnasFormacion" flat
-                  class="qt-clean" row-key="id" :rows-per-page-options="[5, 10, 20]" dense>
-                  <template v-slot:body-cell-archivo_pdf="props">
-                    <q-td :props="props">
-                      <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
-                        @click="previewPDF(props.row.archivo_pdf, props.row.titulo_profesion || 'Documento')">
-                        <q-tooltip>Ver PDF</q-tooltip>
-                      </q-btn>
-                      <span v-else class="text-grey-5">Sin archivo</span>
-                    </q-td>
-                  </template>
-                </q-table>
-              </div>
-              <!-- Experiencia -->
-              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
-                <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="work"
-                    class="text-orange-500" /> Experiencia</h3>
-                <q-table :rows="selectedPostulante?.experiencias || []" :columns="columnasExperiencia" flat
-                  class="qt-clean" row-key="id" :rows-per-page-options="[5, 10, 20]" dense>
-                  <template v-slot:body-cell-archivo_pdf="props">
-                    <q-td :props="props">
-                      <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
-                        @click="previewPDF(props.row.archivo_pdf, props.row.cargo_desempenado || 'Experiencia')">
-                        <q-tooltip>Ver PDF</q-tooltip>
-                      </q-btn>
-                      <span v-else class="text-grey-5">Sin archivo</span>
-                    </q-td>
-                  </template>
-                </q-table>
+          <!-- Panel Izquierdo: Hoja de Vida Estructurada -->
+          <!-- Panel Izquierdo: Hoja de Vida Estructurada (Estilo Exacto) -->
+          <div id="expediente-visual" class="w-full md:w-1/2 overflow-y-auto p-4 md:p-8 border-r border-gray-200 bg-white font-serif" style="max-height: calc(100vh - 88px);">
+            <div class="max-w-4xl mx-auto text-gray-800">
+
+              <!-- HEADER -->
+              <div class="text-center mb-8">
+                <div class="font-bold text-2xl md:text-3xl text-black mb-1">UNITEPC</div>
+                <div class="font-bold text-lg md:text-xl text-black mb-2 uppercase">Universidad Técnica Privada Cosmos</div>
+                <div class="font-bold text-lg text-purple-900 uppercase">
+                    {{
+                      convocatorias.find(c => c.id === filtroConvocatoria)?.titulo ||
+                      selectedPostulante?.postulaciones?.[0]?.oferta?.convocatoria?.titulo ||
+                      'SELECCIÓN DOCENTE'
+                    }}
+                </div>
+                <div class="bg-gray-50 flex justify-between items-end mt-6 px-4 py-2 border-t border-b border-gray-100">
+                     <!-- Escudo Izquierda -->
+                     <img :src="unitepcEscudo" class="w-20 md:w-24 h-auto object-contain" />
+
+                     <!-- Foto+QR Derecha -->
+                     <div class="flex items-center gap-3">
+                        <div class="flex flex-col items-end gap-0.5">
+                            <span class="font-bold text-[10px] md:text-xs text-black uppercase tracking-wider">Fotografía Personal:</span>
+                            <a v-if="fotoDoc?.archivo_pdf"
+                               @click="previewPDF(fotoDoc.archivo_pdf, 'Fotografía Personal')"
+                               class="text-[10px] text-blue-600 underline cursor-pointer hover:text-blue-800 transition-colors">
+                                Ver Documento
+                            </a>
+                            <span v-else class="text-[10px] text-gray-400 italic">No registrada</span>
+                        </div>
+
+                        <div class="bg-white p-1 border border-gray-200 shadow-sm shrink-0">
+                            <qrcode-vue v-if="fotoDoc?.archivo_pdf" :value="getStorageUrl(fotoDoc.archivo_pdf)" :size="64" level="M" render-as="svg" />
+                            <div v-else class="w-16 h-16 bg-gray-100 flex items-center justify-center text-gray-300">
+                                <q-icon name="no_photography" size="24px" />
+                            </div>
+                        </div>
+                     </div>
+                </div>
               </div>
 
-              <!-- Capacitaciones -->
-              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
-                v-if="selectedPostulante?.capacitaciones?.length">
-                <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="menu_book"
-                    class="text-teal-500" /> Cursos / Capacitaciones</h3>
-                <q-table :rows="selectedPostulante?.capacitaciones || []" :columns="[
-                  { name: 'curso', label: 'Curso', field: 'nombre_curso', align: 'left' },
-                  { name: 'inst', label: 'Institución', field: 'institucion_emisora', align: 'left' },
-                  { name: 'anio', label: 'Año', field: 'anio', align: 'center' },
-                  { name: 'pdf', label: 'PDF', field: 'archivo_pdf', align: 'center' }
-                ]" flat class="qt-clean" row-key="id" hide-pagination dense>
-                  <template v-slot:body-cell-pdf="props">
-                    <q-td :props="props">
-                      <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
-                        @click="previewPDF(props.row.archivo_pdf, props.row.nombre_curso)">
-                        <q-tooltip>Ver PDF</q-tooltip>
-                      </q-btn>
-                    </q-td>
-                  </template>
-                </q-table>
+              <!-- I. DATOS PERSONALES -->
+              <div class="mb-8">
+                <h3 class="font-bold text-sm uppercase mb-1 ml-1 text-black">I. DATOS PERSONALES</h3>
+                <table class="w-full border-collapse border border-purple-800 text-xs md:text-sm">
+                  <tr>
+                    <td class="border border-purple-800 p-1 px-2 font-bold text-purple-900 w-1/3">NOMBRE COMPLETO:</td>
+                    <td class="border border-purple-800 p-2 font-bold text-purple-900 uppercase">
+                      {{ selectedPostulante?.nombres }} {{ selectedPostulante?.apellidos }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="border border-purple-800 p-1 px-2 font-bold text-black text-xs">CARGO AL QUE POSTULA:</td>
+                    <td class="border border-purple-800 p-2 text-black text-xs uppercase">
+                        <!-- Filtrar postulaciones solo de esta convocatoria si hay filtro -->
+                        <div v-if="selectedPostulante?.postulaciones?.length">
+                            <span v-for="(p, i) in selectedPostulante.postulaciones.filter(pp => !filtroConvocatoria || pp.oferta?.convocatoria?.id === filtroConvocatoria || pp.oferta?.convocatoria_id === filtroConvocatoria)" :key="p.id">
+                                {{ p.oferta?.cargo?.nombre }} <span class="text-gray-500 font-normal normal-case">({{ p.oferta?.sede?.nombre }})</span><span v-if="i < (selectedPostulante.postulaciones.length - 1)">, </span>
+                            </span>
+                        </div>
+                        <span v-else class="italic text-gray-400">Sin postulación activa</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="border border-purple-800 p-1 px-2 font-bold text-black text-xs">N° DE CÉDULA DE IDENTIDAD:</td>
+                    <td class="border border-purple-800 p-2 text-black text-xs uppercase">
+                        {{ selectedPostulante?.ci }} {{ selectedPostulante?.ci_expedido }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="border border-purple-800 p-1 px-2 font-bold text-black text-xs">CÉDULA DE IDENTIDAD:</td>
+                    <td class="border border-purple-800 p-1 px-2">
+                        <div class="flex items-center justify-between">
+                             <a v-if="docsPorCategoria['personal']?.find(d => d.tipo_documento?.nombre?.toLowerCase().includes('cedula') || d.tipo_documento?.nombre?.toLowerCase().includes('ci'))"
+                                @click="previewPDF(docsPorCategoria['personal'].find(d => d.tipo_documento?.nombre?.toLowerCase().includes('cedula') || d.tipo_documento?.nombre?.toLowerCase().includes('ci')).archivo_pdf, 'Cédula')"
+                                class="text-blue-600 underline cursor-pointer text-xs">
+                                Ver Documento Digital
+                             </a>
+                             <span v-else class="text-gray-400 italic text-xs">No adjuntado</span>
+                             <q-icon name="qr_code_2" size="40px" />
+                        </div>
+                    </td>
+                  </tr>
+                  <tr>
+                     <td class="border border-purple-800 p-1 px-2 font-bold text-black text-xs">NACIONALIDAD:</td>
+                     <td class="border border-purple-800 p-2 text-black text-xs uppercase">{{ selectedPostulante?.nacionalidad || 'Boliviano' }}</td>
+                  </tr>
+                  <tr>
+                     <td class="border border-purple-800 p-1 px-2 font-bold text-black text-xs">DIRECCIÓN DE DOMICILIO:</td>
+                     <td class="border border-purple-800 p-2 text-black text-xs uppercase">{{ selectedPostulante?.direccion || '-' }}</td>
+                  </tr>
+                   <tr>
+                     <td class="border border-purple-800 p-1 px-2 font-bold text-black text-xs">TELÉFONO / CELULAR:</td>
+                     <td class="border border-purple-800 p-2 text-black text-xs">{{ selectedPostulante?.celular || '-' }}</td>
+                  </tr>
+                  <tr>
+                     <td class="border border-purple-800 p-1 px-2 font-bold text-black text-xs">CORREO ELECTRÓNICO:</td>
+                     <td class="border border-purple-800 p-2 text-black text-xs">{{ selectedPostulante?.email || '-' }}</td>
+                  </tr>
+                  <!-- Otros docs personales (Carta, CV, etc) EXCLUYENDO Cédula -->
+                  <tr v-for="doc in docsPorCategoria['personal']?.filter(d =>
+                        !d.tipo_documento?.nombre?.toLowerCase().includes('cedula') &&
+                        !d.tipo_documento?.nombre?.toLowerCase().includes('ci')
+                      )" :key="doc.id">
+                     <td class="border border-purple-800 p-1 px-2 font-bold text-black text-xs uppercase">{{ doc.tipo_documento?.nombre }}:</td>
+                     <td class="border border-purple-800 p-1 px-2">
+                        <div class="flex items-center justify-between">
+                             <a @click="previewPDF(doc.archivo_pdf, doc.tipo_documento?.nombre)" class="text-blue-600 underline cursor-pointer text-xs">
+                                Ver Documento
+                             </a>
+                             <qrcode-vue v-if="doc.archivo_pdf" :value="getStorageUrl(doc.archivo_pdf)" :size="30" level="L" render-as="svg" />
+                             <q-icon v-else name="qr_code_2" size="30px" color="grey-4" />
+                        </div>
+                     </td>
+                  </tr>
+                </table>
               </div>
 
-              <!-- Producción Intelectual -->
-              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
-                v-if="selectedPostulante?.producciones?.length">
-                <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="auto_stories"
-                    class="text-indigo-500" /> Producción Intelectual</h3>
-                <q-table :rows="selectedPostulante?.producciones || []" :columns="[
-                  { name: 'titulo', label: 'Título', field: 'titulo', align: 'left' },
-                  { name: 'tipo', label: 'Tipo', field: 'tipo', align: 'left' },
-                  { name: 'anio', label: 'Año', field: 'anio', align: 'center' },
-                  { name: 'pdf', label: 'PDF', field: 'archivo_pdf', align: 'center' }
-                ]" flat class="qt-clean" row-key="id" hide-pagination dense>
-                  <template v-slot:body-cell-pdf="props">
-                    <q-td :props="props">
-                      <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
-                        @click="previewPDF(props.row.archivo_pdf, props.row.titulo)">
-                        <q-tooltip>Ver PDF</q-tooltip>
-                      </q-btn>
-                    </q-td>
-                  </template>
-                </q-table>
+              <!-- Dynamic Sections based on Convocatoria Requirements -->
+              <div v-for="(section, index) in expedienteSections" :key="section.id" class="mb-8 font-serif">
+                 <h3 class="font-bold text-sm uppercase mb-1 ml-1 text-black">
+                    {{ toRoman(index + 2) }}. {{ section.titulo }}
+                 </h3>
+                 <div v-if="section.descripcion" class="text-[10px] text-gray-500 mb-2 ml-1 italic">
+                    ({{ section.descripcion }})
+                 </div>
+
+                 <!-- Tabla Dinámica -->
+                 <table class="w-full border-collapse border border-purple-800 text-xs text-center">
+                    <thead>
+                       <tr class="text-purple-900 font-bold">
+                          <!-- Campos dinámicos -->
+                          <th v-for="campo in section.campos" :key="campo.nombre" class="border border-purple-800 p-1 uppercase">
+                             {{ campo.label }}
+                          </th>
+                          <!-- Campos fijos -->
+                          <th class="border border-purple-800 p-1 uppercase">Evidencia</th>
+                          <th class="border border-purple-800 p-1 uppercase">Visualización</th>
+                       </tr>
+                    </thead>
+                    <tbody>
+                       <!-- Filas de documentos subidos -->
+                       <tr v-for="doc in section.uploads" :key="doc.id">
+                          <td v-for="campo in section.campos" :key="campo.nombre" class="border border-purple-800 p-2 text-left">
+                             {{ doc.metadatos?.[campo.nombre] || '-' }}
+                          </td>
+                          <td class="border border-purple-800 p-2">
+                             <a v-if="doc.archivo_pdf" @click="previewPDF(doc.archivo_pdf, doc.tipo_documento?.nombre)" class="text-blue-600 underline cursor-pointer text-[10px] block break-all">
+                                Ver Documento
+                             </a>
+                          </td>
+                          <td class="border border-purple-800 p-1 flex justify-center items-center">
+                             <qrcode-vue v-if="doc.archivo_pdf" :value="getStorageUrl(doc.archivo_pdf)" :size="36" level="L" render-as="svg" />
+                             <q-icon v-else name="qr_code_2" size="36px" color="grey-4" />
+                          </td>
+                       </tr>
+                       <tr v-if="section.uploads.length === 0 && (!section.legacy || section.legacy.length === 0)">
+                          <td :colspan="section.campos.length + 2" class="border border-purple-800 p-2 text-gray-400 italic">
+                             No se registraron documentos de este tipo.
+                          </td>
+                       </tr>
+                       <!-- Filas Legacy (si aplica) -->
+                       <template v-if="section.legacy && section.legacy.length > 0">
+                          <tr class="bg-gray-50">
+                             <td :colspan="section.campos.length + 2" class="border border-purple-800 p-1 text-[10px] font-bold text-left pl-2 text-purple-900 border-b-0">
+                                REGISTROS ANTERIORES DEL EXPEDIENTE
+                             </td>
+                          </tr>
+                          <tr v-for="item in section.legacy" :key="'leg-'+item.id">
+                              <!-- Mapeo manual de campos legacy a campos dinámicos (Intentar match) -->
+                              <td v-for="campo in section.campos" :key="'l-'+campo.nombre" class="border border-purple-800 p-2 text-left text-gray-600">
+                                 <!-- Fallback simple: intentar adivinar por nombre de campo -->
+                                 {{
+                                    section.legacyType === 'formacion' ?
+                                       (campo.nombre.includes('nivel') ? item.nivel :
+                                        campo.nombre.includes('titulo') || campo.nombre.includes('profesion') ? item.titulo_profesion :
+                                        campo.nombre.includes('universidad') ? item.universidad :
+                                        campo.nombre.includes('fecha') || campo.nombre.includes('anio') ? item.anio_emision : '-')
+                                    : section.legacyType === 'experiencia' ?
+                                       (campo.nombre.includes('institucion') || campo.nombre.includes('empresa') ? item.empresa_institucion :
+                                        campo.nombre.includes('cargo') ? item.cargo_desempenado :
+                                        campo.nombre.includes('inicio') ? item.anio_inicio :
+                                        campo.nombre.includes('fin') || campo.nombre.includes('conclusion') ? item.anio_fin : '-')
+                                    : '-'
+                                 }}
+                              </td>
+                              <td class="border border-purple-800 p-2">
+                                <a v-if="item.archivo_pdf" @click="previewPDF(item.archivo_pdf, 'Documento')" class="text-blue-600 underline cursor-pointer text-[10px]">Ver PDF</a>
+                              </td>
+                              <td class="border border-purple-800 p-1 flex justify-center items-center">
+                                <qrcode-vue v-if="item.archivo_pdf" :value="getStorageUrl(item.archivo_pdf)" :size="36" level="L" render-as="svg" />
+                                <q-icon v-else name="qr_code_2" size="36px" color="grey-4" />
+                              </td>
+                          </tr>
+                       </template>
+                    </tbody>
+                 </table>
               </div>
 
-              <!-- Reconocimientos -->
-              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
-                v-if="selectedPostulante?.reconocimientos?.length">
-                <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="emoji_events"
-                    class="text-yellow-600" /> Reconocimientos</h3>
-                <q-table :rows="selectedPostulante?.reconocimientos || []" :columns="[
-                  { name: 'titulo', label: 'Título', field: 'titulo', align: 'left' },
-                  { name: 'entidad', label: 'Otorgado por', field: 'otorgado_por', align: 'left' },
-                  { name: 'anio', label: 'Año', field: 'anio', align: 'center' },
-                  { name: 'pdf', label: 'PDF', field: 'archivo_pdf', align: 'center' }
-                ]" flat class="qt-clean" row-key="id" hide-pagination dense>
-                  <template v-slot:body-cell-pdf="props">
-                    <q-td :props="props">
-                      <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
-                        @click="previewPDF(props.row.archivo_pdf, props.row.titulo)">
-                        <q-tooltip>Ver PDF</q-tooltip>
-                      </q-btn>
-                    </q-td>
-                  </template>
-                </q-table>
-              </div>
+               <div class="mt-8 pt-4 border-t border-purple-200 text-center text-[10px] text-gray-400">
+                  <p>Documento Generado Digitalmente por el Sistema de Convocatorias UNITEPC</p>
+                  <p>{{ new Date().toLocaleDateString() }}</p>
+               </div>
 
-              <!-- DOCUMENTOS GENERALES -->
-              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
-                v-if="selectedPostulante?.documentos?.length">
-                <h3 class="text-base font-bold text-gray-800 mb-4 flex items-center gap-2"><q-icon name="folder_open"
-                    class="text-purple-500" /> Documentos Generales</h3>
-                <q-table :rows="selectedPostulante?.documentos || []" :columns="[
-                  { name: 'nombre', label: 'Documento', field: row => row.tipo_documento?.nombre || 'Doc', align: 'left' },
-                  { name: 'pdf', label: 'PDF', field: 'archivo_pdf', align: 'center' }
-                ]" flat class="qt-clean" row-key="id" hide-pagination dense>
-                  <template v-slot:body-cell-pdf="props">
-                    <q-td :props="props">
-                      <q-btn v-if="props.row.archivo_pdf" icon="picture_as_pdf" color="red" flat dense round
-                        @click="previewPDF(props.row.archivo_pdf, props.row.tipo_documento?.nombre)">
-                        <q-tooltip>Ver PDF</q-tooltip>
-                      </q-btn>
-                    </q-td>
-                  </template>
-                </q-table>
-              </div>
             </div>
           </div>
 
@@ -1105,6 +1221,13 @@
       </q-card>
     </q-dialog>
 
+    <TiposDocumentoManager
+      v-if="showQuickTipoDocumento"
+      modo-compacto
+      @tipo-creado="onTipoDocumentoCreado"
+      @cancelar="showQuickTipoDocumento = false"
+    />
+
     <!-- HIDDEN RENDER TARGET (Full HD 1080x1350) for Image Generation -->
     <div id="afiche-render-target" class="bg-white flex flex-col" style="position: fixed; left: 0; top: 0; width: 1080px; height: 1350px; z-index: -100; overflow: hidden;">
          <!-- Header -->
@@ -1199,19 +1322,20 @@ import { useAuthStore } from 'stores/auth-store'
 import AdminHomeComp from './admin/AdminHomeComp.vue'
 import AdminSedes from './admin/AdminSedes.vue'
 import AdminCargos from './admin/AdminCargos.vue'
-import AdminNiveles from './admin/AdminNiveles.vue'
+
 import AdminUsuarios from './admin/AdminUsuarios.vue'
 import AdminRoles from './admin/AdminRoles.vue'
 import TiposDocumentoManager from './admin/TiposDocumentoManager.vue'
 import ReportsDashboard from './admin/ReportsDashboard.vue'
 import ConvocatoriasPostulantes from './admin/ConvocatoriasPostulantes.vue'
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import jsPDF from 'jspdf'
 
 const $q = useQuasar()
 const route = useRoute()
 // Imports
 import QrcodeVue from 'qrcode.vue'
 import html2canvas from 'html2canvas'
+import unitepcEscudo from 'src/assets/unitepc_escudo.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -1229,7 +1353,7 @@ const currentSectionTitle = computed(() => {
     'gestion-convocatorias': 'Gestión de Convocatorias',
     sedes: 'Sedes y Ubicaciones',
     cargos: 'Catálogo de Cargos',
-    niveles: 'Niveles Académicos',
+
     postulaciones: 'Gestión de Postulaciones',
     usuarios: 'Gestión de Usuarios',
     roles: 'Gestión de Roles',
@@ -1253,23 +1377,7 @@ const cargos = ref([])
 const postulaciones = ref([])
 const tiposDocumento = ref([])
 
-// Columnas para tablas de expediente
-const columnasFormacion = [
-  { name: 'nivel', label: 'Nivel', field: 'nivel', align: 'left', sortable: true },
-  { name: 'titulo_profesion', label: 'Título/Profesión', field: 'titulo_profesion', align: 'left', sortable: true },
-  { name: 'universidad', label: 'Universidad', field: 'universidad', align: 'left', sortable: true },
-  { name: 'anio_emision', label: 'Año', field: 'anio_emision', align: 'center', sortable: true },
-  { name: 'archivo_pdf', label: 'PDF', field: 'archivo_pdf', align: 'center' }
-]
-
-const columnasExperiencia = [
-  { name: 'cargo_desempenado', label: 'Cargo', field: 'cargo_desempenado', align: 'left', sortable: true },
-  { name: 'empresa_institucion', label: 'Empresa/Institución', field: 'empresa_institucion', align: 'left', sortable: true },
-  { name: 'anio_inicio', label: 'Año Inicio', field: 'anio_inicio', align: 'center', sortable: true },
-  { name: 'anio_fin', label: 'Año Fin', field: 'anio_fin', align: 'center', sortable: true },
-  { name: 'funciones', label: 'Funciones', field: 'funciones', align: 'left' },
-  { name: 'archivo_pdf', label: 'PDF', field: 'archivo_pdf', align: 'center' }
-]
+// Columnas legacy eliminadas (ya no se usan q-table)
 
 // Dialogs
 const showConvocatoriaDialog = ref(false)
@@ -1294,10 +1402,160 @@ const convocatoriaForm = ref({
   ofertas: [],
   documentos: []
 })
-const nuevaOferta = ref({ sede_id: null, cargos_ids: [], vacantes: 1 }) // vacantes es para el batch add
-const tempOferta = ref({ sede_id: null, cargos_ids: [], vacantes_map: {} }) // vacantes_map para el stepper
+// Construcción dinámica de secciones basada estricta y únicamente en los Tipos de Documento solicitados
+const showQuickTipoDocumento = ref(false)
+
+const filteredTiposDocumento = computed(() => {
+  return [...tiposDocumento.value]
+    .sort((a, b) => (a.orden || 0) - (b.orden || 0))
+})
+
+// Restaurado para compatibilidad con sección "Datos Personales"
+const docsPorCategoria = computed(() => {
+  if (!selectedPostulante.value?.documentos) return {}
+  return selectedPostulante.value.documentos.reduce((acc, doc) => {
+    const cat = doc.tipo_documento?.categoria || 'otros'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(doc)
+    return acc
+  }, {})
+})
+
+const expedienteSections = computed(() => {
+  // 1. Obtener la definición de documentos requeridos (Contexto Convocatoria)
+  let requeridos = []
+
+  // Determinar ID de convocatoria: Directo del filtro o inferido del postulante
+  let convId = filtroConvocatoria.value
+  if (!convId && selectedPostulante.value?.postulaciones?.length > 0) {
+      // Usar la convocatoria de la primera postulación encontrada
+      convId = selectedPostulante.value.postulaciones[0].oferta?.convocatoria_id || selectedPostulante.value.postulaciones[0].oferta?.convocatoria?.id
+  }
+
+  // Buscar la convocatoria en la lista cargada (si existe)
+  if (convId) {
+     const conv = convocatorias.value.find(c => c.id === convId)
+     // Flexibilidad con la propiedad de documentos (backend puede devolver variaciones)
+     const docs = conv?.documentos || conv?.documentos_requeridos || conv?.documentosRequeridos
+     // Solo usar si tiene documentos definidos
+     if (docs && docs.length > 0) {
+        requeridos = docs
+     }
+  }
+
+  // 2. FALLBACK ROBUSTO: Si no se encontraron requisitos específicos, usar TODOS los tipos de documento definidos en el sistema.
+  // Esto asegura que siempre se muestren las secciones estándar (Académica, Experiencia, etc.) para pintar la data.
+  if (requeridos.length === 0 && tiposDocumento.value && tiposDocumento.value.length > 0) {
+      requeridos = tiposDocumento.value
+  }
+
+  // 3. Fallback final: construir "tipos" basados en lo que el postulante tiene subido (si todo lo demás falla)
+  if (requeridos.length === 0 && selectedPostulante.value?.documentos) {
+     const map = new Map()
+     selectedPostulante.value.documentos.forEach(d => {
+        if (d.tipo_documento && !map.has(d.tipo_documento.id)) {
+           map.set(d.tipo_documento.id, d.tipo_documento)
+        }
+     })
+     requeridos = Array.from(map.values())
+  }
+
+  // Ordenar por campo 'orden'
+  requeridos.sort((a, b) => (a.orden || 0) - (b.orden || 0))
+
+  // FILTRAR: Excluir documentos personales (ya mostrados en sección I)
+  requeridos = requeridos.filter(r => r.categoria !== 'personal')
+
+  // 2. Construir la estructura de secciones
+  return requeridos.map((tipo) => {
+     // Parsear campos si es string
+     let campos = []
+     try {
+       campos = typeof tipo.campos === 'string' ? JSON.parse(tipo.campos) : (tipo.campos || [])
+     } catch { campos = [] }
+
+     // Obtener uploads del postulante para este tipo
+     const uploads = selectedPostulante.value?.documentos?.filter(d => d.tipo_documento_id === tipo.id) || []
+
+     // Determinar si corresponde mostrar legacy data
+     // Determinar si corresponde mostrar legacy data
+     // Heurística simple por categoría o nombre
+     let legacyData = []
+     let legacyType = '' // 'formacion', 'experiencia'
+
+     const nombreTipoNormalizado = tipo.nombre.toUpperCase();
+
+     // Logica FORMACION (legacy)
+     if (tipo.categoria === 'academico' || nombreTipoNormalizado.includes('ACADÉMICA') || nombreTipoNormalizado.includes('ACADEMICA')) {
+        // Solo adjuntar si ES formación académica y NO posgrado (generalmente)
+        // O si el backend lo marca categoria 'academico' y NO es posgrado explicitamente en nombre
+        const esPosgrado = nombreTipoNormalizado.includes('POSGRADO') || nombreTipoNormalizado.includes('MAESTRÍA') || nombreTipoNormalizado.includes('DOCTORADO');
+
+        if (!esPosgrado) {
+             legacyData = selectedPostulante.value?.formaciones || []
+             legacyType = 'formacion'
+        }
+     }
+
+     // Logica EXPERIENCIA (legacy)
+     else if (tipo.categoria === 'laboral' || nombreTipoNormalizado.includes('EXPERIENCIA')) {
+        // Incluir experiencia laboral y docencia universitaria
+        if (nombreTipoNormalizado.includes('LABORAL') || nombreTipoNormalizado.includes('PROFESIONAL') || nombreTipoNormalizado.includes('DOCENCIA')) {
+             legacyData = selectedPostulante.value?.experiencias || []
+             legacyType = 'experiencia'
+        }
+     }
+
+     return {
+        id: tipo.id,
+        titulo: tipo.nombre,
+        descripcion: tipo.descripcion,
+        campos: campos,
+        uploads: uploads,
+        legacy: legacyData,
+        legacyType: legacyType
+     }
+  })
+})
+
+const fotoDoc = computed(() => {
+  // Buscar en documentos genéricos
+  const doc = selectedPostulante.value?.documentos?.find(d =>
+    d?.tipo_documento?.nombre?.toLowerCase().includes('foto') ||
+    d?.tipo_documento?.nombre?.toLowerCase().includes('fotografía')
+  )
+  if (doc) return doc
+
+  // Fallback: Verificar columna 'foto_perfil' directa
+  if (selectedPostulante.value?.foto_perfil) {
+      // Retornar objeto simulado con la ruta
+      return { archivo_pdf: selectedPostulante.value.foto_perfil }
+  }
+
+  return null
+})
+
+// getCampoLabel eliminado
+const nuevaOferta = ref({ sedes_ids: [], cargos_ids: [], vacantes: 1 }) // vacantes es para el batch add
+const tempOferta = ref({ sedes_ids: [], cargos_ids: [], vacantes_map: {} }) // vacantes_map para el stepper
 
 const step = ref(1)
+
+// Persistencia del formulario
+const STORAGE_KEY = 'convocatoria_form_draft'
+
+watch(convocatoriaForm, (newVal) => {
+  // Solo persistir si no estamos editando una existente
+  if (!editingConvocatoria.value) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newVal))
+  }
+}, { deep: true })
+
+const onTipoDocumentoCreado = async () => {
+  showQuickTipoDocumento.value = false
+  await loadData() // Recargar todos los tipos
+  $q.notify({ type: 'positive', message: 'Nuevo tipo de documento disponible' })
+}
 
 const isAdmin = computed(() => {
   const rol = authStore.currentUser?.rol?.nombre?.toLowerCase() || ''
@@ -1380,6 +1638,29 @@ const saveQuickCargo = async () => {
   }
 }
 
+
+// ==========================================
+// LÓGICA DE CONVOCATORIAS (CRUD + STEPPER)
+// ==========================================
+
+
+
+
+
+
+
+
+
+
+
+
+// Lógica del Stepper (Ofertas)
+
+
+
+
+
+
 // Filtros Postulaciones
 const filtroConvocatoria = ref(null)
 const filtroSede = ref(null)
@@ -1442,14 +1723,27 @@ const previewPdfUrl = ref('')
 const previewPdfName = ref('')
 const currentPdfPath = ref('')
 
+// Helper para números romanos
+const toRoman = (num) => {
+  const lookup = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1}
+  let roman = '', i
+  for ( i in lookup ) {
+    while ( num >= lookup[i] ) {
+      roman += i
+      num -= lookup[i]
+    }
+  }
+  return roman
+}
+
 const previewPDF = (rutaPdf, nombre) => {
   if (!rutaPdf) return
-  const baseUrl = process.env.PROD
-    ? 'https://api.sipo.xpertiaplus.com/storage/'
-    : 'http://localhost:8081/storage/'
-  previewPdfUrl.value = baseUrl + rutaPdf
+  // Usar helper centralizado
+  const url = getStorageUrl(rutaPdf)
+
+  previewPdfUrl.value = url
   previewPdfName.value = nombre || 'Documento'
-  currentPdfPath.value = rutaPdf
+  currentPdfPath.value = url
 }
 
 const closePreview = () => {
@@ -1468,275 +1762,70 @@ const descargarExpedienteCompleto = async () => {
 
   downloadingExpediente.value = true
   try {
-    // 1. Obtener datos completos del expediente
-    const { data: postulante } = await api.get(`/admin/postulantes/${selectedPostulante.value.id}/expediente`)
+    // 1. Capturar el elemento visual visualizado
+    const element = document.getElementById('expediente-visual')
+    if (!element) throw new Error('No se encontró el visualizador del expediente')
 
-    // 2. Crear documento PDF
-    const pdfDoc = await PDFDocument.create()
-    const timesRomanFont = await pdfDoc.embedFont(StandardFonts.Helvetica)
-    const timesBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
-    const timesItalicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
-
-    // Configuración de página
-    const pageSize = [595.28, 841.89] // A4
-    let page = pdfDoc.addPage(pageSize)
-    const { width, height } = page.getSize()
-    const margin = 50
-    let y = height - margin
-
-    // Helpers de diseño
-    const drawHeader = () => {
-      // Franja morada de cabecera
-      page.drawRectangle({
+    // Configurar html2canvas
+    const options = {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
         x: 0,
-        y: height - 100,
-        width: width,
-        height: 100,
-        color: rgb(0.42, 0.13, 0.66),
-      })
-
-      page.drawText('EXPEDIENTE DIGITAL DE POSTULACIÓN', {
-        x: margin,
-        y: height - 60,
-        size: 20,
-        font: timesBoldFont,
-        color: rgb(1, 1, 1),
-      })
-
-      page.drawText('Sistema de Selección y Contratación', {
-        x: margin,
-        y: height - 80,
-        size: 10,
-        font: timesRomanFont,
-        color: rgb(0.9, 0.9, 0.9),
-      })
-      y = height - 130
+        y: 0
     }
 
-    const checkPage = (neededHeight) => {
-      if (y - neededHeight < margin) {
-        page = pdfDoc.addPage(pageSize)
-        y = height - 60
-        return true
-      }
-      return false
+    // Forzar scroll top temporalmente
+    const originalScrollTop = element.scrollTop
+    element.scrollTop = 0
+
+    const canvas = await html2canvas(element, options)
+
+    // Restaurar scroll
+    element.scrollTop = originalScrollTop
+
+    const imgData = canvas.toDataURL('image/png')
+
+    // 2. Crear PDF (A4)
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const pdfHeight = pdf.internal.pageSize.getHeight()
+
+    const imgProps = pdf.getImageProperties(imgData)
+    const imgHeight = (imgProps.height * pdfWidth) / imgProps.width
+    let heightLeft = imgHeight
+    let position = 0
+
+    // Primera página
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight)
+    heightLeft -= pdfHeight
+    position -= pdfHeight
+
+    // Páginas siguientes
+    while (heightLeft > 0) {
+      pdf.addPage()
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight)
+      heightLeft -= pdfHeight
+      position -= pdfHeight
     }
 
-    const drawSectionTitle = (text) => {
-      checkPage(40)
-      y -= 10
-      page.drawRectangle({
-        x: margin,
-        y: y - 5,
-        width: width - (margin * 2),
-        height: 25,
-        color: rgb(0.95, 0.95, 0.98),
-      })
-      page.drawLine({
-        start: { x: margin, y: y - 5 },
-        end: { x: margin, y: y + 20 },
-        thickness: 3,
-        color: rgb(0.42, 0.13, 0.66),
-      })
-      page.drawText(text.toUpperCase(), {
-        x: margin + 10,
-        y: y + 2,
-        size: 13,
-        font: timesBoldFont,
-        color: rgb(0.2, 0.2, 0.2),
-      })
-      y -= 35
-    }
-
-    const drawLabelValue = (label, value) => {
-      checkPage(20)
-      page.drawText(`${label}:`, {
-        x: margin,
-        y,
-        size: 10,
-        font: timesBoldFont,
-        color: rgb(0.4, 0.4, 0.4),
-      })
-      page.drawText(String(value || 'No registrado'), {
-        x: margin + 100,
-        y,
-        size: 11,
-        font: timesRomanFont,
-        color: rgb(0, 0, 0),
-      })
-      y -= 18
-    }
-
-    // --- CONSTRUIR CONTENIDO ---
-    drawHeader()
-
-    // Datos Personales
-    drawSectionTitle('Datos del Postulante')
-    drawLabelValue('Nombre Completo', `${postulante.nombres} ${postulante.apellidos}`)
-    drawLabelValue('Documento CI', postulante.ci)
-    drawLabelValue('Correo Electrónico', postulante.email)
-    drawLabelValue('Teléfono/Celular', postulante.celular)
-    drawLabelValue('Dirección', postulante.direccion)
-    y -= 10
-
-    // Formación
-    if (postulante.formaciones?.length > 0) {
-      drawSectionTitle('Formación Académica')
-      postulante.formaciones.forEach(f => {
-        checkPage(40)
-        page.drawText(f.titulo_profesion || 'Título no especificado', {
-          x: margin,
-          y,
-          size: 11,
-          font: timesBoldFont,
-        })
-        y -= 14
-        page.drawText(`${f.nivel} • ${f.universidad} (${f.anio_emision})`, {
-          x: margin,
-          y,
-          size: 10,
-          font: timesRomanFont,
-          color: rgb(0.3, 0.3, 0.3),
-        })
-        y -= 25
-      })
-    }
-
-    // Experiencia
-    if (postulante.experiencias?.length > 0) {
-      drawSectionTitle('Trayectoria Laboral')
-      postulante.experiencias.forEach(e => {
-        checkPage(40)
-        page.drawText(e.cargo_desempenado || 'Cargo no especificado', {
-          x: margin,
-          y,
-          size: 11,
-          font: timesBoldFont,
-        })
-        y -= 14
-        page.drawText(`${e.empresa_institucion} (${e.anio_inicio} - ${e.anio_fin || 'Actualidad'})`, {
-          x: margin,
-          y,
-          size: 10,
-          font: timesRomanFont,
-          color: rgb(0.3, 0.3, 0.3),
-        })
-        y -= 25
-      })
-    }
-
-    // Capacitaciones
-    if (postulante.capacitaciones?.length > 0) {
-        drawSectionTitle('Cursos y Capacitaciones')
-        postulante.capacitaciones.forEach(c => {
-          checkPage(30)
-          page.drawText(c.nombre_curso, { x: margin, y, size: 10, font: timesBoldFont })
-          y -= 12
-          page.drawText(`${c.institucion} • ${c.horas_academicas} hrs • ${c.anio}`, { x: margin, y, size: 9, font: timesRomanFont, color: rgb(0.4, 0.4, 0.4) })
-          y -= 18
-        })
-    }
-
-    // --- ADJUNTAR DOCUMENTOS ---
-
-    const attachPdf = async (url, titulo, categoria) => {
-      try {
-        if (!url) return
-
-        const response = await api.get('/documento-proxy', {
-          params: { path: url },
-          responseType: 'arraybuffer'
-        })
-        const pdfBytes = response.data
-        const srcDoc = await PDFDocument.load(pdfBytes)
-
-        // PÁGINA DE SEPARADOR ELEGANTE
-        const sepPage = pdfDoc.addPage(pageSize)
-        const sW = sepPage.getWidth()
-        const sH = sepPage.getHeight()
-
-        // Marco decorativo
-        sepPage.drawRectangle({
-          x: 40, y: 40, width: sW - 80, height: sH - 80,
-          borderColor: rgb(0.42, 0.13, 0.66), borderWidth: 1,
-        })
-
-        sepPage.drawText('DOCUMENTO ADJUNTO', {
-          x: sW / 2 - 80, y: sH - 150, size: 14, font: timesBoldFont, color: rgb(0.4, 0.4, 0.4),
-        })
-
-        sepPage.drawText(categoria.toUpperCase(), {
-          x: sW / 2 - 50, y: sH / 2 + 50, size: 12, font: timesItalicFont, color: rgb(0.6, 0.6, 0.6),
-        })
-
-        sepPage.drawText(titulo, {
-          x: 100, y: sH / 2, size: 22, font: timesBoldFont, color: rgb(0.2, 0.2, 0.2),
-          maxWidth: sW - 200, lineHeight: 28,
-        })
-
-        sepPage.drawLine({
-          start: { x: sW / 2 - 50, y: sH / 2 - 20 }, end: { x: sW / 2 + 50, y: sH / 2 - 20 },
-          thickness: 3, color: rgb(0.42, 0.13, 0.66),
-        })
-
-        // Copiar páginas con escalado automático para ajustar a A4
-        const copiedPages = await pdfDoc.copyPages(srcDoc, srcDoc.getPageIndices())
-        copiedPages.forEach((cp) => {
-          const { width: cpW, height: cpH } = cp.getSize()
-          // Si es más grande que A4, escalamos
-          if (cpW > pageSize[0] || cpH > pageSize[1]) {
-             const scale = Math.min(pageSize[0] / cpW, pageSize[1] / cpH)
-             cp.scale(scale, scale)
-          }
-          pdfDoc.addPage(cp)
-        })
-
-      } catch (e) {
-        console.error(`Error adjuntando ${titulo}:`, e)
-        checkPage(20)
-        page.drawText(`[ERROR: No se pudo cargar el documento: ${titulo}]`, {
-           x: margin, y, size: 10, font: timesBoldFont, color: rgb(0.8, 0, 0)
-        })
-        y -= 15
-      }
-    }
-
-    const attachments = [
-      ...(postulante.formaciones || []).map(i => ({ url: i.archivo_pdf, title: i.titulo_profesion, cat: 'Formación Académica' })),
-      ...(postulante.experiencias || []).map(i => ({ url: i.archivo_pdf, title: i.cargo_desempenado, cat: 'Experiencia Laboral' })),
-      ...(postulante.capacitaciones || []).map(i => ({ url: i.archivo_pdf, title: i.nombre_curso, cat: 'Capacitación' })),
-      ...(postulante.producciones || []).map(i => ({ url: i.archivo_pdf, title: i.titulo, cat: 'Producción Intelectual' })),
-      ...(postulante.reconocimientos || []).map(i => ({ url: i.archivo_pdf, title: i.titulo || i.tipo_reconocimiento, cat: 'Reconocimiento' })),
-      ...(postulante.documentos || []).map(i => ({ url: i.archivo_pdf, title: i.tipo_documento?.nombre, cat: 'Documentación General' })),
-    ]
-
-    for (const attach of attachments) {
-      if (attach.url) {
-        await attachPdf(attach.url, attach.title, attach.cat)
-      }
-    }
-
-    // 3. Guardar y descargar
-    const pdfBytes = await pdfDoc.save()
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' })
-    const link = document.createElement('a')
-    link.href = window.URL.createObjectURL(blob)
-    const nombreArchivo = `Expediente_Completo_${postulante.ci}.pdf`
-    link.download = nombreArchivo
-    link.click()
+    // 3. Descargar
+    pdf.save(`Expediente_${selectedPostulante.value.ci}_Completo.pdf`)
 
     $q.notify({
       type: 'positive',
-      message: 'Expediente consolidado descargado existosamente',
+      message: 'Descarga exitosa (Vista Previa)',
       icon: 'check_circle'
     })
 
   } catch (error) {
-    console.error('Error generando expediente:', error)
+    console.error('Error visual expediente:', error)
     $q.notify({
       type: 'negative',
-      message: 'Error al generar el expediente PDF',
-      caption: error.message || 'Intente nuevamente'
+      message: 'Error al generar el PDF visual',
+      caption: error.message
     })
   } finally {
     downloadingExpediente.value = false
@@ -1765,12 +1854,16 @@ const getCargoName = (id) => {
 }
 
 // Helper para obtener la URL completa de storage
+// Helper para obtener la URL completa de storage
 const getStorageUrl = (path) => {
   if (!path) return ''
+  // Si la ruta ya es completa (http...), retornarla tal cual
+  if (path.startsWith('http')) return path;
+
   const baseUrl = import.meta.env.PROD
     ? 'https://api.sipo.xpertiaplus.com/storage/'
-    : 'http://localhost:8081/storage/'
-  return baseUrl + path
+    : 'http://localhost:8000/storage/' // Corregido puerto default laravel 8000
+  return baseUrl + path.replace(/^\//, '') // Evitar doble slash
 }
 
 const loadData = async () => {
@@ -1799,54 +1892,68 @@ const loadData = async () => {
 }
 
 // CRUD Wrappers (Simplificado, misma lógica anterior)
-const editConvocatoria = (item) => {
+const editConvocatoria = async (item) => {
   editingConvocatoria.value = item;
-  // Formatear fechas para el input date HTML5 (YYYY-MM-DD)
-  convocatoriaForm.value = {
-    ...item,
-    perfil_profesional: item.perfil_profesional || '',
-    experiencia_requerida: item.experiencia_requerida || '',
-    hora_limite: item.hora_limite ? item.hora_limite.substr(0, 5) : '23:59',
-    fecha_inicio: item.fecha_inicio ? item.fecha_inicio.split('T')[0] : '',
-    fecha_cierre: item.fecha_cierre ? item.fecha_cierre.split('T')[0] : '',
-    ofertas: [],
-    documentos: (item.documentos_requeridos || item.documentosRequeridos || []).map(d => ({
-      tipo_documento_id: d.id,
-      obligatorio: d.pivot?.obligatorio == 1 || d.pivot?.obligatorio === true || d.pivot?.obligatorio === 'true'
-    }))
-  };
-  step.value = 1;
-  showConvocatoriaDialog.value = true
+  try {
+      $q.loading.show()
+      const { data } = await api.get(`/admin/convocatorias/${item.id}`)
+      const fullItem = (data.convocatoria || data) // Dependiendo de la respueta de show()
+
+      // Formatear fechas para el input date HTML5 (YYYY-MM-DD)
+      convocatoriaForm.value = {
+        ...fullItem,
+        perfil_profesional: fullItem.perfil_profesional || '',
+        experiencia_requerida: fullItem.experiencia_requerida || '',
+        hora_limite: fullItem.hora_limite ? fullItem.hora_limite.substr(0, 5) : '23:59',
+        fecha_inicio: fullItem.fecha_inicio ? fullItem.fecha_inicio.split('T')[0] : '',
+        fecha_cierre: fullItem.fecha_cierre ? fullItem.fecha_cierre.split('T')[0] : '',
+        ofertas: [], // Las ofertas se gestionan en otro diálogo
+        documentos: (fullItem.documentos_requeridos || fullItem.documentosRequeridos || fullItem.documentos || []).map(d => ({
+          tipo_documento_id: d.id,
+          obligatorio: d.pivot?.obligatorio == 1 || d.pivot?.obligatorio === true || d.pivot?.obligatorio === 'true'
+        }))
+      };
+      step.value = 1;
+      showConvocatoriaDialog.value = true
+  } catch (e) {
+      console.error(e)
+      $q.notify({type: 'negative', message: 'Error al cargar detalles de la convocatoria'})
+  } finally {
+      $q.loading.hide()
+  }
 }
 
 const addOfertaToForm = () => {
-  if (!tempOferta.value.sede_id || tempOferta.value.cargos_ids.length === 0) {
-    $q.notify({ type: 'warning', message: 'Seleccione Sede y al menos un Cargo' }); return
+  if (tempOferta.value.sedes_ids.length === 0 || tempOferta.value.cargos_ids.length === 0) {
+    $q.notify({ type: 'warning', message: 'Seleccione al menos una Sede y al menos un Cargo' }); return
   }
 
-  const selectedSedeObj = sedes.value.find(s => s.id === tempOferta.value.sede_id)
   let totalAdded = 0
 
-  if (selectedSedeObj) {
-    tempOferta.value.cargos_ids.forEach(cargoId => {
-      const exists = convocatoriaForm.value.ofertas.some(o => o.sede_id === selectedSedeObj.id && o.cargo_id === cargoId)
-      if (!exists) {
-        convocatoriaForm.value.ofertas.push({
-          sede_id: selectedSedeObj.id,
-          cargo_id: cargoId,
-          vacantes: tempOferta.value.vacantes_map[cargoId] || 1 // Use vacantes_map for individual vacancies
-        })
-        totalAdded++
-      }
-    })
-  }
+  tempOferta.value.sedes_ids.forEach(sedeId => {
+    const selectedSedeObj = sedes.value.find(s => s.id === sedeId)
+    if (selectedSedeObj) {
+      tempOferta.value.cargos_ids.forEach(cargoId => {
+        const exists = convocatoriaForm.value.ofertas.some(o => o.sede_id === selectedSedeObj.id && o.cargo_id === cargoId)
+        if (!exists) {
+          convocatoriaForm.value.ofertas.push({
+            sede_id: selectedSedeObj.id,
+            cargo_id: cargoId,
+            vacantes: tempOferta.value.vacantes_map[cargoId] || 1 // Use vacantes_map for individual vacancies
+          })
+          totalAdded++
+        }
+      })
+    }
+  })
 
   if (totalAdded > 0) {
-    $q.notify({ type: 'positive', message: `${totalAdded} cargos agregados` })
+    $q.notify({ type: 'positive', message: `${totalAdded} nuevas combinaciones agregadas` })
     tempOferta.value.cargos_ids = [] // Limpiar cargos
+    tempOferta.value.sedes_ids = [] // Limpiar sedes
     tempOferta.value.vacantes_map = {} // Limpiar mapa
   } else {
-    $q.notify({ type: 'warning', message: 'Los cargos seleccionados ya estaban agregados' })
+    $q.notify({ type: 'warning', message: 'Las combinaciones seleccionadas ya estaban agregadas' })
   }
 }
 
@@ -1858,6 +1965,8 @@ const removeOfertaFromForm = (index) => {
 
 // Open afiche preview for existing convocatoria
 // Open afiche preview for existing convocatoria
+
+
 const openAfichePreview = async (convocatoria) => {
     $q.loading.show({ message: 'Preparando afiche...' })
     let displayData = { ...convocatoria }
@@ -1918,6 +2027,9 @@ const saveConvocatoria = async () => {
     showConvocatoriaDialog.value = false
     loadData()
     $q.notify({ type: 'positive', message: 'Guardado exitosamente' })
+
+    // Limpiar borrador local
+    localStorage.removeItem(STORAGE_KEY)
 
     // PREPARAR DATOS PARA EL AFICHE
     const displayData = {
@@ -1997,7 +2109,8 @@ const resetConvocatoriaForm = () => {
   }
   editingConvocatoria.value = null
   step.value = 1
-  tempOferta.value = { sede_id: null, cargos_ids: [], vacantes_map: {} }
+  tempOferta.value = { sedes_ids: [], cargos_ids: [], vacantes_map: {} }
+  localStorage.removeItem(STORAGE_KEY)
 }
 
 const toggleDocumento = (tipoId) => {
@@ -2057,26 +2170,29 @@ const eliminarConvocatoria = async (item) => {
 
 const gestionarOfertas = async (conv) => {
   selectedConvocatoria.value = conv
+  nuevaOferta.value = { sedes_ids: [], cargos_ids: [], vacantes: 1 }
   const { data } = await api.get(`/admin/convocatorias/${conv.id}`)
   ofertasConvocatoria.value = data.ofertas || []
   showOfertasDialog.value = true
 }
 
 const agregarOferta = async () => {
-  if (!nuevaOferta.value.sede_id || nuevaOferta.value.cargos_ids.length === 0) {
-    $q.notify({ type: 'warning', message: 'Seleccione Sede y Cargos' }); return
+  if (nuevaOferta.value.sedes_ids.length === 0 || nuevaOferta.value.cargos_ids.length === 0) {
+    $q.notify({ type: 'warning', message: 'Seleccione Sedes y Cargos' }); return
   }
 
   try {
     loading.value = true
 
     const promises = []
-    nuevaOferta.value.cargos_ids.forEach(cargoId => {
-      promises.push(api.post(`/admin/convocatorias/${selectedConvocatoria.value.id}/ofertas`, {
-        sede_id: nuevaOferta.value.sede_id,
-        cargo_id: cargoId,
-        vacantes: nuevaOferta.value.vacantes
-      }))
+    nuevaOferta.value.sedes_ids.forEach(sedeId => {
+      nuevaOferta.value.cargos_ids.forEach(cargoId => {
+        promises.push(api.post(`/admin/convocatorias/${selectedConvocatoria.value.id}/ofertas`, {
+          sede_id: sedeId,
+          cargo_id: cargoId,
+          vacantes: nuevaOferta.value.vacantes
+        }))
+      })
     })
 
     await Promise.all(promises)
@@ -2084,6 +2200,7 @@ const agregarOferta = async () => {
     const { data } = await api.get(`/admin/convocatorias/${selectedConvocatoria.value.id}`)
     ofertasConvocatoria.value = data.ofertas || []
     nuevaOferta.value.cargos_ids = [] // Limpiar selección
+    nuevaOferta.value.sedes_ids = [] // Limpiar selección
     $q.notify({ type: 'positive', message: 'Ofertas agregadas correctamente' })
   } catch {
     $q.notify({ type: 'negative', message: 'Error al agregar algunas ofertas' })
@@ -2146,6 +2263,16 @@ onMounted(async () => {
     const valid = await authStore.checkAuth()
     if (valid) {
       loadData()
+
+      // Recuperar borrador
+      const draft = localStorage.getItem(STORAGE_KEY)
+      if (draft && !editingConvocatoria.value) {
+        try {
+          const parsed = JSON.parse(draft)
+          convocatoriaForm.value = { ...convocatoriaForm.value, ...parsed }
+        } catch (e) { console.error('Error recuperando borrador', e) }
+      }
+
       if (activeTab.value === 'postulaciones') {
         cargarPostulaciones()
       }

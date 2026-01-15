@@ -33,10 +33,10 @@ export const usePostulacionStore = defineStore('postulacion', {
     ofertasSeleccionadas: [],
 
     // Documentos requeridos por la convocatoria (dinámico)
-    documentosRequeridos: [], // Array de { id, nombre, descripcion, icono, obligatorio }
-    documentos: {}, // Objeto dinámico { [tipo_documento_id]: File }
+    documentosRequeridos: [], // Array de { id, nombre, descripcion, icono, obligatorio, campos, categoria, permite_multiples }
+    documentos: {}, // Objeto { [tipo_documento_id]: [{ archivo: File, metadatos: {} }] }
 
-    // Expediente
+    // Expediente (Tablas originales, se mantienen por compatibilidad pero se prioriza documentos dinámicos)
     formaciones: [],
     experiencias: [],
     capacitaciones: [],
@@ -139,32 +139,70 @@ export const usePostulacionStore = defineStore('postulacion', {
     // Seleccionar una convocatoria y cargar sus documentos requeridos
     seleccionarConvocatoria(convocatoriaId) {
       this.convocatoriaSeleccionadaId = convocatoriaId
-      this.ofertasSeleccionadas = [] // Resetear ofertas al cambiar de convocatoria
+      this.ofertasSeleccionadas = []
 
-      // Cargar documentos requeridos de la convocatoria (soporta ambos formatos de nombre)
       const conv = this.convocatorias.find(c => c.id === convocatoriaId)
-      // Laravel puede devolver como documentos_requeridos o documentosRequeridos
       const docs = conv?.documentos_requeridos || conv?.documentosRequeridos || []
 
       if (docs.length > 0) {
-        // Mapear los documentos incluyendo el campo obligatorio del pivot
         this.documentosRequeridos = docs.map(doc => ({
           id: doc.id,
           nombre: doc.nombre,
           descripcion: doc.descripcion,
-          obligatorio: doc.pivot?.obligatorio ?? true, // Por defecto obligatorio
+          icono: doc.icono,
+          categoria: doc.categoria,
+          permite_multiples: doc.permite_multiples == 1 || doc.permite_multiples === true,
+          campos: typeof doc.campos === 'string' ? JSON.parse(doc.campos) : doc.campos,
+          obligatorio: doc.pivot?.obligatorio == 1 || doc.pivot?.obligatorio === true,
           orden: doc.pivot?.orden ?? 0
         }))
 
-        // Inicializar objeto de documentos vacío
+        // Inicializar objeto de documentos como arreglos
         this.documentos = {}
         this.documentosRequeridos.forEach(doc => {
-          this.documentos[doc.id] = null
+          this.documentos[doc.id] = []
         })
       } else {
         this.documentosRequeridos = []
         this.documentos = {}
       }
+    },
+
+    // Agregar un nuevo registro para un tipo de documento dinámico
+    agregarDocumentoDinamico(tipoId) {
+      if (!this.documentos[tipoId]) {
+        this.documentos[tipoId] = []
+      }
+      this.documentos[tipoId].push({
+        archivo: null,
+        metadatos: {}
+      })
+    },
+
+    // Eliminar un registro de documento dinámico
+    eliminarDocumentoDinamico(tipoId, index) {
+      if (this.documentos[tipoId]) {
+        this.documentos[tipoId].splice(index, 1)
+      }
+    },
+
+    setDocumento(tipoId, index, archivo) {
+      if (!this.documentos[tipoId]) this.documentos[tipoId] = []
+      if (!this.documentos[tipoId][index]) {
+        this.documentos[tipoId][index] = { archivo: null, metadatos: {} }
+      }
+      this.documentos[tipoId][index].archivo = archivo
+    },
+
+    setMetadato(tipoId, index, campo, valor) {
+      if (!this.documentos[tipoId]) this.documentos[tipoId] = []
+      if (!this.documentos[tipoId][index]) {
+        this.documentos[tipoId][index] = { archivo: null, metadatos: {} }
+      }
+      if (!this.documentos[tipoId][index].metadatos) {
+        this.documentos[tipoId][index].metadatos = {}
+      }
+      this.documentos[tipoId][index].metadatos[campo] = valor
     },
 
     // Cargar convocatorias abiertas
@@ -181,23 +219,27 @@ export const usePostulacionStore = defineStore('postulacion', {
       }
     },
 
-    // Cargar convocatoria específica
+    // Cargar convocatoria específica (slug)
     async cargarConvocatoria(slug) {
       this.loading = true
       try {
         const { data } = await api.get(`/convocatorias/${slug}`)
         this.convocatoriaActual = data
 
-        // Cargar documentos requeridos de la convocatoria
-        if (data.documentos_requeridos) {
-          this.documentosRequeridos = data.documentos_requeridos
-          // Inicializar objeto de documentos vacío
-          this.documentos = {}
-          data.documentos_requeridos.forEach(doc => {
-            this.documentos[doc.id] = null
-          })
-        }
+        if (data.documentos_requeridos || data.documentosRequeridos) {
+           const docs = data.documentos_requeridos || data.documentosRequeridos
+           this.documentosRequeridos = docs.map(doc => ({
+             ...doc,
+             campos: typeof doc.campos === 'string' ? JSON.parse(doc.campos) : doc.campos,
+             permite_multiples: doc.permite_multiples == 1 || doc.permite_multiples === true,
+             obligatorio: doc.pivot?.obligatorio == 1 || doc.pivot?.obligatorio === true
+           }))
 
+           this.documentos = {}
+           this.documentosRequeridos.forEach(doc => {
+             this.documentos[doc.id] = []
+           })
+        }
         return data
       } catch (error) {
         this.error = 'Convocatoria no encontrada'
@@ -228,11 +270,13 @@ export const usePostulacionStore = defineStore('postulacion', {
             email: p.email || '',
             celular: p.celular,
             foto_perfil: p.foto_perfil,
+            ci_expedido: p.ci_expedido || '',
             nacionalidad: p.nacionalidad || '',
             direccion: p.direccion || '',
-            ci_expedido: p.ci_expedido || '',
-            // carta y cv no se cargan como File objects, el usuario debe resubirlos si quiere cambiarlos
-            // O podríamos cargar la URL para mostrar que ya existe (TODO frontend handling)
+            // Guardamos las rutas de archivos existentes
+            carta_postulacion: p.carta_postulacion_pdf || null,
+            curriculum_vitae: p.curriculum_vitae_pdf || null,
+            ci_documento: p.ci_documento_pdf || null,
           }
 
           // Cargar expediente existente
@@ -241,6 +285,21 @@ export const usePostulacionStore = defineStore('postulacion', {
           this.capacitaciones = p.capacitaciones || []
           this.producciones = p.producciones || []
           this.reconocimientos = p.reconocimientos || []
+
+          // Cargar documentos dinámicos existentes (si coinciden con los requeridos)
+          if (p.documentos && p.documentos.length > 0) {
+            p.documentos.forEach(doc => {
+              const tipoId = doc.tipo_documento_id
+              // Si el tipo está en el estado 'documentos' (inicializado por seleccionarConvocatoria)
+              if (this.documentos[tipoId]) {
+                this.documentos[tipoId].push({
+                  id: doc.id, // ID del registro existente
+                  archivo: doc.archivo_pdf, // Ruta al PDF
+                  metadatos: typeof doc.metadatos === 'string' ? JSON.parse(doc.metadatos) : (doc.metadatos || {})
+                })
+              }
+            })
+          }
         } else {
           this.esPostulanteExistente = false
           this.tieneExpediente = false
@@ -275,11 +334,6 @@ export const usePostulacionStore = defineStore('postulacion', {
       this[seccion].splice(index, 1)
     },
 
-    // Establecer documento por tipo
-    setDocumento(tipoDocumentoId, archivo) {
-      this.documentos[tipoDocumentoId] = archivo
-    },
-
     // Enviar postulación completa
     async enviarPostulacion() {
       this.loading = true
@@ -299,16 +353,8 @@ export const usePostulacionStore = defineStore('postulacion', {
         formData.append('direccion', this.postulante.direccion || '')
         formData.append('ci_expedido', this.postulante.ci_expedido || '')
 
-        // Archivos Postulante
-        if (this.postulante.carta_postulacion instanceof File) {
-          formData.append('carta_postulacion', this.postulante.carta_postulacion)
-        }
-        if (this.postulante.curriculum_vitae instanceof File) {
-          formData.append('curriculum_vitae', this.postulante.curriculum_vitae)
-        }
-        if (this.postulante.ci_documento instanceof File) {
-          formData.append('ci_documento', this.postulante.ci_documento)
-        }
+        // Los archivos estáticos (legacy) se llenarán automáticamente desde los dinámicos si coinciden los nombres
+        // Esto mantiene compatibilidad con la tabla 'postulantes' del backend
 
         // Foto de perfil
         if (this.postulante.foto_perfil instanceof File) {
@@ -322,12 +368,35 @@ export const usePostulacionStore = defineStore('postulacion', {
 
         // Documentos requeridos (dinámicos)
         let docIndex = 0
-        for (const [tipoId, archivo] of Object.entries(this.documentos)) {
-          if (archivo instanceof File) {
-            formData.append(`documentos[${docIndex}][tipo_documento_id]`, tipoId)
-            formData.append(`documentos[${docIndex}][archivo]`, archivo)
-            docIndex++
-          }
+        for (const [tipoId, items] of Object.entries(this.documentos)) {
+          if (!Array.isArray(items)) continue
+
+          // Buscar info del tipo de documento para mapeo legacy
+          const tipoInfo = this.documentosRequeridos.find(d => d.id == tipoId)
+          const nombreNormalizado = tipoInfo?.nombre?.toLowerCase()?.trim()
+
+          items.forEach(item => {
+            if (item.archivo instanceof File) {
+              formData.append(`documentos[${docIndex}][tipo_documento_id]`, tipoId)
+              formData.append(`documentos[${docIndex}][archivo]`, item.archivo)
+
+              // --- MAPEO LEGACY ---
+              // Si el nombre coincide con los clásicos, también enviarlos en los campos raíz
+              if (nombreNormalizado?.includes('carta de postulacion')) {
+                formData.append('carta_postulacion', item.archivo)
+              } else if (nombreNormalizado?.includes('curriculum vitae') || nombreNormalizado?.includes('cv')) {
+                formData.append('curriculum_vitae', item.archivo)
+              } else if (nombreNormalizado?.includes('cedula') || nombreNormalizado?.includes('ci')) {
+                formData.append('ci_documento', item.archivo)
+              }
+
+              // Agregar metadatos
+              if (item.metadatos && Object.keys(item.metadatos).length > 0) {
+                formData.append(`documentos[${docIndex}][metadatos]`, JSON.stringify(item.metadatos))
+              }
+              docIndex++
+            }
+          })
         }
 
         // Formaciones

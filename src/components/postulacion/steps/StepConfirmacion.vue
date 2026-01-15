@@ -22,34 +22,10 @@
           <div class="text-subtitle2 text-grey-5">CARGOS SELECCIONADOS</div>
           <div class="text-h6">{{ store.ofertasSeleccionadas.length }} cargo(s)</div>
         </div>
-        <div class="col-12 col-md-3">
+        <div v-for="cat in countsByCategory" :key="cat.id" class="col-12 col-md-3">
           <div class="stat-mini">
-            <q-icon name="school" size="24px" color="primary" />
-            <span>{{ store.formaciones.length }} Formaciones</span>
-          </div>
-        </div>
-        <div class="col-12 col-md-3">
-          <div class="stat-mini">
-            <q-icon name="work" size="24px" color="secondary" />
-            <span>{{ store.experiencias.length }} Experiencias</span>
-          </div>
-        </div>
-        <div class="col-12 col-md-3">
-          <div class="stat-mini">
-            <q-icon name="menu_book" size="24px" color="warning" />
-            <span>{{ store.capacitaciones.length }} Cursos</span>
-          </div>
-        </div>
-        <div class="col-12 col-md-3">
-          <div class="stat-mini">
-            <q-icon name="folder" size="24px" color="info" />
-            <span>{{ Object.keys(store.documentos).length }} Documentos</span>
-          </div>
-        </div>
-        <div class="col-12 col-md-3">
-          <div class="stat-mini">
-            <q-icon name="emoji_events" size="24px" color="positive" />
-            <span>{{ store.producciones.length + store.reconocimientos.length }} Otros</span>
+            <q-icon :name="cat.icon" size="24px" :color="cat.color" />
+            <span>{{ cat.count }} {{ cat.label }}</span>
           </div>
         </div>
       </div>
@@ -64,12 +40,41 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { usePostulacionStore } from 'stores/postulacion-store'
 import { useQuasar } from 'quasar'
 
 const store = usePostulacionStore()
 const $q = useQuasar()
 const emit = defineEmits(['prev', 'success'])
+
+const countsByCategory = computed(() => {
+  const counts = {
+    academico: { id: 'academico', label: 'Formaciones', icon: 'school', color: 'primary', count: 0 },
+    laboral: { id: 'laboral', label: 'Experiencias', icon: 'work', color: 'secondary', count: 0 },
+    capacitacion: { id: 'capacitacion', label: 'Cursos/Cap.', icon: 'menu_book', color: 'warning', count: 0 },
+    produccion: { id: 'produccion', label: 'Producciones', icon: 'auto_stories', color: 'info', count: 0 },
+    reconocimiento: { id: 'reconocimiento', label: 'Reconocimientos', icon: 'emoji_events', color: 'positive', count: 0 },
+    general: { id: 'general', label: 'Documentos', icon: 'folder', color: 'grey-7', count: 0 },
+  }
+
+  // Contar documentos por categoría
+  store.documentosRequeridos.forEach(req => {
+    if (req.categoria === 'personal') return
+    const docs = store.documentos[req.id] || []
+    // Solo contar si tiene archivo o metadatos llenos
+    const filledDocs = docs.filter(d => d.archivo || Object.keys(d.metadatos).length > 0)
+
+    const catId = req.categoria || 'general'
+    if (counts[catId]) {
+      counts[catId].count += filledDocs.length
+    } else {
+      counts.general.count += filledDocs.length
+    }
+  })
+
+  return Object.values(counts).filter(c => c.count > 0)
+})
 
 const enviarPostulacion = async () => {
   // Validaciones finales por seguridad
@@ -107,6 +112,17 @@ const enviarPostulacion = async () => {
       archivosGrandes.push(`Capacitación ${idx + 1}: ${(item.archivo.size / 1024 / 1024).toFixed(2)} MB`)
     }
   })
+
+  // Verificar documentos requeridos (dinámicos)
+  for (const [id, items] of Object.entries(store.documentos)) {
+    if (!Array.isArray(items)) continue
+    items.forEach((item, idx) => {
+      if (item.archivo instanceof File && item.archivo.size > MAX_SIZE) {
+        const docName = store.documentosRequeridos.find(d => d.id == id)?.nombre || 'Documento'
+        archivosGrandes.push(`${docName} ${idx + 1}: ${(item.archivo.size / 1024 / 1024).toFixed(2)} MB`)
+      }
+    })
+  }
 
   // Si hay archivos que superan el tamaño, mostrar error
   if (archivosGrandes.length > 0) {
